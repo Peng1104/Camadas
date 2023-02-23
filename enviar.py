@@ -55,6 +55,13 @@ def sendHandshake(com: enlace) -> bool:
         print("Handshake recebido com sucesso.")
         return True
 
+    print("Erro no handshake. Tentar novamente? (S/N)")
+
+    if input().lower() == 's':
+        return sendHandshake(com)
+
+    com.disable()
+    print("Conexão encerrada.")
     return False
 
 
@@ -150,7 +157,6 @@ def main():
         print("Error ->")
         print(e)
         com.disable()
-
 
     # so roda o main quando for executado do terminal ... se for chamado dentro de outro modulo nao roda
 if __name__ == "__main__":
