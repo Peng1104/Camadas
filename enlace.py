@@ -10,6 +10,9 @@
 # Importa pacote de tempo
 import time
 
+# Importa formato de dados
+from numpy import asarray
+
 # Interface Física
 from interfaceFisica import fisica
 
@@ -37,7 +40,7 @@ class enlace(object):
         self.fisica.close()
 
     def sendData(self, data):
-        self.tx.sendBuffer(data)
+        self.tx.sendBuffer(asarray(data))
 
     def getData(self, size):
         data = self.rx.getNData(size)
