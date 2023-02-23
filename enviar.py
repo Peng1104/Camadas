@@ -42,9 +42,20 @@ def sendHandshake(com: enlace) -> bool:
         print("Conexão encerrada.")
         return False
 
+    head = com.readData(12)
+
+    payloadSize = int.from_bytes(head[:1], byteorder='big')
+    totalPackets = int.from_bytes(head[2:6], byteorder='big')
+    packetNumber = int.from_bytes(head[7:], byteorder='big')
+
+    end = com.readData(3)
     com.rx.clearBuffer()
-    print("Handshake realizado com sucesso.")
-    return True
+
+    if payloadSize == 0 and totalPackets == 0 and packetNumber == 0 and end == PACKET_END:
+        print("Handshake recebido com sucesso.")
+        return True
+
+    return False
 
 
 def sendPacket(packet: bytes, com: enlace, counter: int = 1) -> bool:
@@ -55,7 +66,12 @@ def sendPacket(packet: bytes, com: enlace, counter: int = 1) -> bool:
 
     payloadSize = int.from_bytes(response[:1], byteorder='big')
 
-    if payloadSize == 0:
+    if payloadSize > 0:
+        responsePayload = com.getdata(payloadSize)
+
+    end = com.getdata(3)
+
+    if payloadSize == 0 and end == PACKET_END:
         print("Pacote recebido com sucesso.")
         return True
 
@@ -134,6 +150,7 @@ def main():
         print("Error ->")
         print(e)
         com.disable()
+
 
     # so roda o main quando for executado do terminal ... se for chamado dentro de outro modulo nao roda
 if __name__ == "__main__":
