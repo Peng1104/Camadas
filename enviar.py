@@ -1,5 +1,4 @@
 from enlace import enlace
-import numpy as np
 import time
 
 # voce deverá descomentar e configurar a porta com através da qual ira fazer comunicaçao
@@ -12,16 +11,17 @@ import time
 # SERIAL_PORT_NAME = "/dev/tty.usbmodem1411"   # Mac    (variacao de)
 SERIAL_PORT_NAME = "COM3"                    # Windows(variacao de)
 
-# HEAD format PayloadSize 2 Byte + 5 Byte PacketNumber + 5 Bytes TotalPackets
+# HEAD format PayloadSize 2 Byte + 5 Byte TotalPackets + 5 Bytes PacketNumber
 # Payload 0 - 50 Bytes, the packet data.
 # # End of packet 3 Bytes (0xDD 0xEE 0xFF)
 
 PACKET_END = b'\xDD\xEE\xFF'
 
-HANDSHAKE = int(0).to_bytes(length=2, byteorder='big') + int(1).to_bytes(
-            length=5, byteorder='big') + int(1).to_bytes(length=5, byteorder='big') + PACKET_END
+HANDSHAKE = int(0).to_bytes(length=2, byteorder='big') + int(0).to_bytes(
+    length=5, byteorder='big') + int(0).to_bytes(length=5, byteorder='big') + PACKET_END
 
-def sendHandshake(com):
+
+def sendHandshake(com: enlace) -> bool:
     com.sendData(HANDSHAKE)
 
     print("Waiting response...")
@@ -31,20 +31,46 @@ def sendHandshake(com):
     while com.rx.getIsEmpty() and counter < 11:
         time.sleep(0.5)
         counter += 1
-    
+
     if counter >= 10:
         print("Servidor Inativo. Tentar novamente? (S/N)")
-        
+
         if input().lower() == 's':
             return sendHandshake(com)
-        else:
-            com.disable()
-            print("Conexão encerrada.")
-            return False
-    else:
-        com.rx.clearBuffer()
-        print("Handshake realizado com sucesso.")
+
+        com.disable()
+        print("Conexão encerrada.")
+        return False
+
+    com.rx.clearBuffer()
+    print("Handshake realizado com sucesso.")
+    return True
+
+
+def sendPacket(packet: bytes, com: enlace, counter: int = 1) -> bool:
+    com.sendData(packet)  # Envia o pacote
+    time.sleep(0.5)  # 0.5s para o servidor processar o pacote
+
+    response, _ = com.getData(12)  # Recebe a resposta do servidor
+
+    payloadSize = int.from_bytes(response[:1], byteorder='big')
+
+    if payloadSize == 0:
+        print("Pacote recebido com sucesso.")
         return True
+
+    responsePayload = com.getdata(payloadSize)
+
+    print(
+        f"Pacote rejeitado pelo servidor error code {int.from_bytes(responsePayload, byteorder='big')}. Tentando novamente...")
+
+    if counter < 5:
+        return sendPacket(packet, com, counter+1)
+
+    print("Tentativas excedidas. Encerrando conexão.")
+    com.disable()
+    return False
+
 
 def main():
     try:
@@ -55,7 +81,7 @@ def main():
 
         if not sendHandshake(com):
             return
-        
+
         print("Data creation start")
 
         with open("img/projeto3.png", "rb") as file:
@@ -81,53 +107,22 @@ def main():
 
         print(f"Data processing finished, to be send {len(packets)} packets")
 
-        time.sleep(0.5)
-
-        print(f"Header sended, {com.tx.getStatus()} bytes sended.")
-
-        time.sleep(0.5)
-
         print("Sending data...")
 
-        # as array apenas como boa pratica para casos de ter uma outra forma de dados
-        com.sendData(np.asarray(payload))
-
-        time.sleep(0.5)
+        while len(packets) > 0:
+            if sendPacket(packets.pop(0), com):
+                print(
+                    f"Packet {total - len(packets)}/{total} sended, {com.tx.getStatus()} bytes.")
+            else:
+                print(
+                    f"Error while sending data, {total - len(packets)} packets sended")
+                return
 
         # A camada enlace possui uma camada inferior, TX possui um método para conhecermos o status da transmissão
         # O método não deve estar fincionando quando usado como abaixo. deve estar retornando zero. Tente entender como esse método funciona e faça-o funcionar.
-        print(f"Payload sended, {com.tx.getStatus()} bytes sended.")
+        # print(f"Payload sended, {com.tx.getStatus()} bytes sended.")
 
-        time.sleep(0.5)
-
-        # Esperando Byte de sacrifício...
-
-        
-
-        amount = b''
-
-        while True:
-            byte = com.getData(1)[0][0]
-
-            if byte == 1:
-                print("Header start index received")
-                continue
-
-            elif byte == 221:
-                print("Header end index received")
-                amount = int.from_bytes(amount, byteorder='big')
-                break
-
-            else:
-                amount += byte.to_bytes(length=2, byteorder='big')
-
-        if len(selected) != amount:
-            print(
-                f"Foi confirmado {amount} enviados, esperado era {len(selected)}")
-
-        else:
-            print(
-                f"Foi confirmado o recebimento de todos os {amount} commands")
+        print("Todos os pacotes foram enviados com sucesso.")
 
         # Encerra comunicação
         print("-------------------------")
