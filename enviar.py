@@ -95,13 +95,13 @@ def main():
             payload = data[:50]
             data = data[50:]
 
-            head = int(50).to_bytes(length=2, byteorder='big') + int(len(packets) + 1).to_bytes(
-                length=5, byteorder='big') + total.to_bytes(length=5, byteorder='big')
+            head = int(50).to_bytes(length=2, byteorder='big') + total.to_bytes(
+                length=5, byteorder='big') + int(len(packets) + 1).to_bytes(length=5, byteorder='big')
 
             packets.append(head + payload + PACKET_END)
 
-        head = int(len(data)).to_bytes(length=2, byteorder='big') + int(len(packets) + 1).to_bytes(
-            length=5, byteorder='big') + total.to_bytes(length=5, byteorder='big')
+        head = int(len(data)).to_bytes(length=2, byteorder='big') + total.to_bytes(
+            length=5, byteorder='big') + int(len(packets) + 1).to_bytes(length=5, byteorder='big')
 
         packets.append(head + data + PACKET_END)
 
