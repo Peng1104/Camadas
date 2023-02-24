@@ -42,13 +42,13 @@ def sendHandshake(com: enlace) -> bool:
         print("Conexão encerrada.")
         return False
 
-    head = com.getData(12)
+    head, _ = com.getData(12)
 
     payloadSize = int.from_bytes(head[:1], byteorder='big')
     totalPackets = int.from_bytes(head[2:6], byteorder='big')
     packetNumber = int.from_bytes(head[7:], byteorder='big')
 
-    end = com.getData(3)
+    end, _ = com.getData(3)
     com.rx.clearBuffer()
 
     if payloadSize == 0 and totalPackets == 0 and packetNumber == 0 and end == PACKET_END:
@@ -76,13 +76,13 @@ def sendPacket(packet: bytes, com: enlace, counter: int = 1) -> bool:
     if payloadSize > 0:
         responsePayload = com.getData(payloadSize)
 
-    end = com.getData(3)
+    end, _ = com.getData(3)
 
     if payloadSize == 0 and end == PACKET_END:
         print("Pacote recebido com sucesso.")
         return True
 
-    responsePayload = com.getData(payloadSize)
+    responsePayload, _ = com.getData(payloadSize)
 
     print(
         f"Pacote rejeitado pelo servidor error code {int.from_bytes(responsePayload, byteorder='big')}. Tentando novamente...")

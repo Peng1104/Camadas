@@ -1,4 +1,5 @@
 from enlace import enlace
+import time
 
 # voce deverá descomentar e configurar a porta com através da qual ira fazer comunicaçao
 #   para saber a sua porta, execute no terminal :
@@ -6,7 +7,7 @@ from enlace import enlace
 # se estiver usando windows, o gerenciador de dispositivos informa a porta
 
 # use uma das 3 opcoes para atribuir à variável a porta usada
-SERIAL_PORT_NAME = "/dev/ttyACM0"            # Ubuntu (variacao de)
+SERIAL_PORT_NAME = "/dev/ttyACM1"            # Ubuntu (variacao de)
 # SERIAL_PORT_NAME = "/dev/tty.usbmodem1411"   # Mac    (variacao de)
 #SERIAL_PORT_NAME = "COM5"                    # Windows(variacao de)
 
@@ -22,15 +23,21 @@ HANDSHAKE = int(0).to_bytes(length=2, byteorder='big') + int(0).to_bytes(
 CONFIRMATION_PACKET= int(0).to_bytes(length=2, byteorder='big') + int(1).to_bytes(
     length=5, byteorder='big') + int(1).to_bytes(length=5, byteorder='big') + PACKET_END
 
-def confirmHandshake(com: enlace)-> bool:
+def confirmHandshake(com: enlace) -> bool:
     # Wait for client to send handshake
+
+    print("Waiting for handshake...") # DEBUG
+
     handshake, _ = com.getData(12)
 
+    print("Handshake received.") # DEBUG
+
     # Reads the handshake packet
-    payloadSize = int.to_bytes(handshake[:1])
-    packetNumber = int.to_bytes(handshake[2:6])
-    totalPackets = int.to_bytes(handshake[7:])
-    end = com.getData(3)
+    payloadSize = int.from_bytes(handshake[:1], byteorder='big')
+    totalPackets = int.from_bytes(handshake[2:6], byteorder='big')
+    packetNumber = int.from_bytes(handshake[7:], byteorder='big')
+
+    end, _ = com.getData(3)
     com.rx.clearBuffer()
 
     # Checks if the handshake is valid
@@ -47,9 +54,11 @@ def validatePacket(com: enlace, packetNumber: int, data: list) -> bool:
     if len(data) + 1 != packetNumber:
         print(f"Packet {packetNumber} is not valid.")
 
+        payload = packetNumber.to_bytes(byteorder='big')
+
         # Send error packet to client
-        com.sendData(packetNumber.to_bytes(length=2, byteorder='big') + int(1).to_bytes(
-            length=5, byteorder='big') + int(1).to_bytes(length=5, byteorder='big') + packetNumber.to_bytes(byteorder='big')+ PACKET_END)
+        com.sendData(len(payload).to_bytes(length=2, byteorder='big') + int(1).to_bytes(
+            length=5, byteorder='big') + int(1).to_bytes(length=5, byteorder='big') + payload + PACKET_END)
 
         return False
     else:
@@ -57,6 +66,7 @@ def validatePacket(com: enlace, packetNumber: int, data: list) -> bool:
 
         # Send confirmation packet to client
         com.sendData(CONFIRMATION_PACKET)
+        time.sleep(0.5)
 
         return True
 
@@ -72,36 +82,38 @@ def main():
 
         # Read first packet (Especial Case)
 
-        head = com.getData(12)  #Wait for packet head
+        head, _ = com.getData(12)  #Wait for packet head
 
         # Reads the head
-        payloadSize = int.to_bytes(head[:1])
-        recivedPacketNumber = int.to_bytes(head[2:6])
-        totalPackets = int.to_bytes(head[7:])            #Must read the first packet to get it
+        payloadSize = int.from_bytes(head[:1], byteorder='big')
+        totalPackets = int.from_bytes(head[2:6], byteorder='big')
+        recivedPacketNumber = int.from_bytes(head[7:], byteorder='big')           #Must read the first packet to get it
 
         # Reads payload data
 
         data = b''
 
-        payload = com.getData(payloadSize)
+        payload, _ = com.getData(payloadSize)
 
         if not validatePacket(com, recivedPacketNumber, payload):
             return
 
-        data += payload
+        data += payload.to_bytes(length=payloadSize, byteorder='big')
 
         while len(data) <= totalPackets:
 
-            payloadSize = int.to_bytes(head[:1])
-            recivedPacketNumber = int.to_bytes(head[2:6])
-            totalPackets = int.to_bytes(head[7:])
+            print(f"Data:{data}, Data lengt:{len(data)}")
 
-            payload = com.getData(payloadSize)
+            payloadSize = int.from_bytes(head[:1], byteorder='big') 
+            recivedPacketNumber = int.from_bytes(head[2:6], byteorder='big') 
+            totalPackets = int.from_bytes(head[7:], byteorder='big') 
+
+            payload, _ = com.getData(payloadSize)
 
             if not validatePacket(com, recivedPacketNumber, payload):
                 return
 
-            data += payload
+            data += payload.to_bytes(length=payloadSize, byteorder='big')
 
         print("Data received length: ", len(data))
 
