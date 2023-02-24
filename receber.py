@@ -101,7 +101,7 @@ def main():
         data.append(payload)
 
         while len(data) <= totalPackets:
-            print(f"Packet {len(data) + 1 } of {totalPackets} received.") # DEBUG
+            print(f"Reading {len(data) + 1} of {totalPackets}.") # DEBUG
 
             payloadSize = int.from_bytes(head[:1], byteorder='big') 
             recivedPacketNumber = int.from_bytes(head[2:6], byteorder='big') 
@@ -114,11 +114,14 @@ def main():
 
             data.append(payload)
 
-        print("Data received length: ", len(data))
-
         data = b''.join(data)
 
-        print("Data received: ", data)
+        print(f"{len(data)} of data received, writing to file...")
+
+        with open("img/received.png", "wb") as file:
+            file.write(data)
+
+        print("File written.")
 
         # Encerra comunicação
         print("-------------------------")
