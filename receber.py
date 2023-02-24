@@ -1,6 +1,4 @@
 from enlace import enlace
-import numpy as np
-import time
 
 # voce deverá descomentar e configurar a porta com através da qual ira fazer comunicaçao
 #   para saber a sua porta, execute no terminal :
@@ -8,9 +6,9 @@ import time
 # se estiver usando windows, o gerenciador de dispositivos informa a porta
 
 # use uma das 3 opcoes para atribuir à variável a porta usada
-# SERIAL_PORT_NAME = "/dev/ttyACM0"            # Ubuntu (variacao de)
+SERIAL_PORT_NAME = "/dev/ttyACM0"            # Ubuntu (variacao de)
 # SERIAL_PORT_NAME = "/dev/tty.usbmodem1411"   # Mac    (variacao de)
-SERIAL_PORT_NAME = "COM5"                    # Windows(variacao de)
+#SERIAL_PORT_NAME = "COM5"                    # Windows(variacao de)
 
 # HEAD format PayloadSize 2 Byte + 5 Byte PacketNumber + 5 Bytes TotalPackets
 # Payload 0 - 50 Bytes, the packet data.
@@ -24,7 +22,7 @@ HANDSHAKE = int(0).to_bytes(length=2, byteorder='big') + int(0).to_bytes(
 CONFIRMATION_PACKET= int(0).to_bytes(length=2, byteorder='big') + int(1).to_bytes(
     length=5, byteorder='big') + int(1).to_bytes(length=5, byteorder='big') + PACKET_END
 
-def confirmHandshake(com):
+def confirmHandshake(com: enlace)-> bool:
     # Wait for client to send handshake
     handshake, _ = com.getData(12)
 
@@ -32,7 +30,7 @@ def confirmHandshake(com):
     payloadSize = int.to_bytes(handshake[:1])
     packetNumber = int.to_bytes(handshake[2:7])
     totalPackets = int.to_bytes(handshake[8:13])
-    end = com.readData(3)
+    end = com.getData(3)
     com.rx.clearBuffer()
 
     # Checks if the handshake is valid
@@ -107,7 +105,7 @@ def main():
 
         print("Data received length: ", len(data))
 
-        print("Data received: ", data.to_bytes(byteorder='big'))
+        print("Data received: ", data)
 
         # Encerra comunicação
         print("-------------------------")

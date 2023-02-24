@@ -7,9 +7,9 @@ import time
 # se estiver usando windows, o gerenciador de dispositivos informa a porta
 
 # use uma das 3 opcoes para atribuir à variável a porta usada
-# SERIAL_PORT_NAME = "/dev/ttyACM0"            # Ubuntu (variacao de)
+SERIAL_PORT_NAME = "/dev/ttyACM0"            # Ubuntu (variacao de)
 # SERIAL_PORT_NAME = "/dev/tty.usbmodem1411"   # Mac    (variacao de)
-SERIAL_PORT_NAME = "COM3"                    # Windows(variacao de)
+#SERIAL_PORT_NAME = "COM3"                    # Windows(variacao de)
 
 # HEAD format PayloadSize 2 Byte + 5 Byte TotalPackets + 5 Bytes PacketNumber
 # Payload 0 - 50 Bytes, the packet data.
@@ -42,13 +42,13 @@ def sendHandshake(com: enlace) -> bool:
         print("Conexão encerrada.")
         return False
 
-    head = com.readData(12)
+    head = com.getData(12)
 
     payloadSize = int.from_bytes(head[:1], byteorder='big')
     totalPackets = int.from_bytes(head[2:6], byteorder='big')
     packetNumber = int.from_bytes(head[7:], byteorder='big')
 
-    end = com.readData(3)
+    end = com.getData(3)
     com.rx.clearBuffer()
 
     if payloadSize == 0 and totalPackets == 0 and packetNumber == 0 and end == PACKET_END:
@@ -74,15 +74,15 @@ def sendPacket(packet: bytes, com: enlace, counter: int = 1) -> bool:
     payloadSize = int.from_bytes(response[:1], byteorder='big')
 
     if payloadSize > 0:
-        responsePayload = com.getdata(payloadSize)
+        responsePayload = com.getData(payloadSize)
 
-    end = com.getdata(3)
+    end = com.getData(3)
 
     if payloadSize == 0 and end == PACKET_END:
         print("Pacote recebido com sucesso.")
         return True
 
-    responsePayload = com.getdata(payloadSize)
+    responsePayload = com.getData(payloadSize)
 
     print(
         f"Pacote rejeitado pelo servidor error code {int.from_bytes(responsePayload, byteorder='big')}. Tentando novamente...")
