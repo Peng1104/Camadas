@@ -47,7 +47,7 @@ def validatePacket(com: enlace, packetNumber: int, data: list) -> bool:
 
     # Checks if the packet is not valid
     if len(data)+1 != packetNumber:
-        print("Packet number is not valid.")
+        print(f"Packet {packetNumber} is not valid.")
 
         # Send error packet to client
         com.sendData(int(len(packetNumber).to_bytes(byteorder='big')).to_bytes(length=2, byteorder='big') + int(1).to_bytes(
@@ -55,7 +55,7 @@ def validatePacket(com: enlace, packetNumber: int, data: list) -> bool:
 
         return False
     else:
-        print("Packet number is valid.")
+        print(f"Packet {packetNumber} is valid.")
 
         # Send confirmation packet to client
         com.sendData(CONFIRMATION_PACKET)
