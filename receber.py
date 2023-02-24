@@ -12,93 +12,102 @@ import time
 # SERIAL_PORT_NAME = "/dev/tty.usbmodem1411"   # Mac    (variacao de)
 SERIAL_PORT_NAME = "COM5"                    # Windows(variacao de)
 
+# HEAD format PayloadSize 2 Byte + 5 Byte PacketNumber + 5 Bytes TotalPackets
+# Payload 0 - 50 Bytes, the packet data.
+# # End of packet 3 Bytes (0xDD 0xEE 0xFF)
+
+PACKET_END = b'\xDD\xEE\xFF'
+
+HANDSHAKE = int(0).to_bytes(length=2, byteorder='big') + int(0).to_bytes(
+    length=5, byteorder='big') + int(0).to_bytes(length=5, byteorder='big') + PACKET_END
+
+CONFIRMATION_PACKET= int(0).to_bytes(length=2, byteorder='big') + int(1).to_bytes(
+    length=5, byteorder='big') + int(1).to_bytes(length=5, byteorder='big') + PACKET_END
+
+def confirmHandshake(com):
+    # Wait for client to send handshake
+    handshake, _ = com.getData(12)
+
+    # Reads the handshake packet
+    payloadSize = int.to_bytes(handshake[:1])
+    packetNumber = int.to_bytes(handshake[2:7])
+    totalPackets = int.to_bytes(handshake[8:13])
+    end = com.readData(3)
+    com.rx.clearBuffer()
+
+    # Checks if the handshake is valid
+    if payloadSize == 0 and packetNumber == 0 and totalPackets == 0 and end == PACKET_END:
+        print("Handshake received is valid.")
+        # Send handshake confirmation
+        com.sendData(HANDSHAKE)
+        return True
+    return False
+
+def validatePacket(com: enlace, packetNumber: int, data: list) -> bool:
+
+    # Checks if the packet is not valid
+    if len(data)+1 != packetNumber:
+        print("Packet number is not valid.")
+
+        # Send error packet to client
+        com.sendData(int(len(packetNumber).to_bytes(byteorder='big')).to_bytes(length=2, byteorder='big') + int(1).to_bytes(
+            length=5, byteorder='big') + int(1).to_bytes(length=5, byteorder='big') + packetNumber.to_bytes(byteorder='big')+ PACKET_END)
+
+        return False
+    else:
+        print("Packet number is valid.")
+
+        # Send confirmation packet to client
+        com.sendData(CONFIRMATION_PACKET)
+
+        return True
 
 def main():
     try:
         # Ativa comunicacao. Inicia os threads e a comunicação seiral
-
         com = enlace(SERIAL_PORT_NAME)
         com.enable()
 
-        # Byte de sacrifício
+        # Wait for handshake confirmation
+        if not confirmHandshake(com):
+            return
 
-        print("Esperando receber o byte de sacrifício para limpar o buffer.")
+        # Read first packet (Especial Case)
 
-        rxBuffer, nRx = com.getData(1)
-        com.rx.clearBuffer()
-        
-        print("Byte de sacrifício recebido.", "Buffer limpo.")
-        print("Esperando header...")
+        head = com.getData(12)  #Wait for packet head
 
-        time.sleep(1.5)
+        # Reads the head
+        payloadSize = int.to_bytes(head[:1])
+        recivedPacketNumber = int.to_bytes(head[2:7])
+        totalPackets = int.to_bytes(head[8:13])            #Must read the first packet to get it
 
-        amount = b''
-        payloadSize = b''
+        # Reads payload data
 
-        while True:
-            byte = com.getData(1)[0][0]
+        data = b''
 
-            if type(amount) == int:
-                if byte == 221:
-                    print("Header end index received")
-                    payloadSize = int.from_bytes(payloadSize, byteorder='big')
-                    break
+        payload = com.getData(payloadSize)
 
-                payloadSize += byte.to_bytes(byteorder='big')
-            
-            elif byte == 1:
-                print("Header start index received")
+        if not validatePacket(com, recivedPacketNumber, payload):
+            return
 
-            elif byte == 221:
-                print("Header separator index received")
-                amount = int.from_bytes(amount, byteorder='big')
-            
-            else:
-                amount += byte.to_bytes(byteorder='big')
-        
-        print(f"Expenting {amount} commands.")
+        data += payload
 
-        time.sleep(1)
+        while len(data) <= totalPackets:
 
-        print(f"Reading {payloadSize} bytes of data...")
+            payloadSize = int.to_bytes(head[:1])
+            recivedPacketNumber = int.to_bytes(head[2:7])
+            totalPackets = int.to_bytes(head[8:13])
 
-        # Agora vamos iniciar a recepção dos dados. Se algo chegou ao RX, deve estar automaticamente guardado
-        # Observe o que faz a rotina dentro do thread RX
-        # print um aviso de que a recepção vai começar.
+            payload = com.getData(payloadSize)
 
-        # Será que todos os bytes enviados estão realmente guardadas? Será que conseguimos verificar?
-        # Veja o que faz a funcao do enlaceRX  getBufferLen
+            if not validatePacket(com, recivedPacketNumber, payload):
+                return
 
-        # acesso aos bytes recebidos
-        rxBuffer, nRx = com.getData(payloadSize)
-        print(f"Recebidos {nRx} bytes.")
+            data += payload
 
-        # Lista de comandos possíveis
-        commands = [b'\x00\x00\x00\x00', b'\x00\x00\xAA\x00', b'\xAA\x00\x00',
-                    b'\x00\xAA\x00', b'\x00\x00\xAA', b'\x00\xAA', b'\xAA\x00', b'\x00', b'\xFF']
+        print("Data received length: ", len(data))
 
-        command = b''
-        counter = 1
-
-        for n in range(1, nRx):
-            byte = rxBuffer[n]
-
-            if byte == 17:
-                print(f"Command {commands.index(command) + 1} recived", f"Value = {command}")
-                command = b''
-                counter += 1
-            
-            else:
-                command += byte.to_bytes(byteorder='big')
-        
-        print(f"Command {commands.index(command) + 1} recived", f"Value = {command}")
-
-        print(f"{counter} commands recived, expected {amount} commands.")
-
-        header = b'\x01' + counter.to_bytes(byteorder='big') + b'\xDD'
-
-        print("Sending response header...")
-        com.sendData(np.asarray(header))
+        print("Data received: ", data.to_bytes(byteorder='big'))
 
         # Encerra comunicação
         print("-------------------------")
