@@ -54,7 +54,7 @@ def validatePacket(com: enlace, packetNumber: int, data: list) -> bool:
     if len(data) + 1 != packetNumber:
         print(f"Packet {packetNumber} is not valid.")
 
-        payload = packetNumber.to_bytes(byteorder='big')
+        payload = packetNumber.to_bytes(length=5, byteorder='big')
 
         # Send error packet to client
         com.sendData(len(payload).to_bytes(length=2, byteorder='big') + int(1).to_bytes(
@@ -91,14 +91,14 @@ def main():
 
         # Reads payload data
 
-        data = b''
+        data = []
 
         payload, _ = com.getData(payloadSize)
 
-        if not validatePacket(com, recivedPacketNumber, payload):
+        if not validatePacket(com, recivedPacketNumber, data):
             return
 
-        data += payload.to_bytes(length=payloadSize, byteorder='big')
+        data.append(payload)
 
         while len(data) <= totalPackets:
 
@@ -110,10 +110,12 @@ def main():
 
             payload, _ = com.getData(payloadSize)
 
-            if not validatePacket(com, recivedPacketNumber, payload):
+            if not validatePacket(com, recivedPacketNumber, data):
                 return
 
-            data += payload.to_bytes(length=payloadSize, byteorder='big')
+            data.append(payload)
+
+        data = b''.join(data)
 
         print("Data received length: ", len(data))
 
