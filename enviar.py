@@ -107,7 +107,7 @@ def main():
 
         print("Data creation start")
 
-        with open("img/projeto3.png", "rb") as file:
+        with open("img/1by1Image.png", "rb") as file:
             data = file.read()
 
         total = len(data) // 50 + 1
@@ -118,7 +118,7 @@ def main():
             payload = data[:50]
             data = data[50:]
 
-            head = int(50).to_bytes(length=2, byteorder='big') + total.to_bytes(
+            head = len(payload).to_bytes(length=2, byteorder='big') + total.to_bytes(
                 length=5, byteorder='big') + int(len(packets) + 1).to_bytes(length=5, byteorder='big')
 
             packets.append(head + payload + PACKET_END)

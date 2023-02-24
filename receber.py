@@ -97,6 +97,9 @@ def main():
 
         end, _ = com.getData(3)
 
+        print(int.from_bytes(end, byteorder='big'))
+        print(int.from_bytes(PACKET_END, byteorder='big'))
+
         if not validatePacket(com, recivedPacketNumber, data, end):
             return
 
