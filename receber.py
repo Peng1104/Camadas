@@ -28,8 +28,8 @@ def confirmHandshake(com: enlace)-> bool:
 
     # Reads the handshake packet
     payloadSize = int.to_bytes(handshake[:1])
-    packetNumber = int.to_bytes(handshake[2:7])
-    totalPackets = int.to_bytes(handshake[8:13])
+    packetNumber = int.to_bytes(handshake[2:6])
+    totalPackets = int.to_bytes(handshake[7:])
     end = com.getData(3)
     com.rx.clearBuffer()
 
@@ -44,11 +44,11 @@ def confirmHandshake(com: enlace)-> bool:
 def validatePacket(com: enlace, packetNumber: int, data: list) -> bool:
 
     # Checks if the packet is not valid
-    if len(data)+1 != packetNumber:
+    if len(data) + 1 != packetNumber:
         print(f"Packet {packetNumber} is not valid.")
 
         # Send error packet to client
-        com.sendData(int(len(packetNumber).to_bytes(byteorder='big')).to_bytes(length=2, byteorder='big') + int(1).to_bytes(
+        com.sendData(packetNumber.to_bytes(length=2, byteorder='big') + int(1).to_bytes(
             length=5, byteorder='big') + int(1).to_bytes(length=5, byteorder='big') + packetNumber.to_bytes(byteorder='big')+ PACKET_END)
 
         return False
@@ -76,8 +76,8 @@ def main():
 
         # Reads the head
         payloadSize = int.to_bytes(head[:1])
-        recivedPacketNumber = int.to_bytes(head[2:7])
-        totalPackets = int.to_bytes(head[8:13])            #Must read the first packet to get it
+        recivedPacketNumber = int.to_bytes(head[2:6])
+        totalPackets = int.to_bytes(head[7:])            #Must read the first packet to get it
 
         # Reads payload data
 
@@ -93,8 +93,8 @@ def main():
         while len(data) <= totalPackets:
 
             payloadSize = int.to_bytes(head[:1])
-            recivedPacketNumber = int.to_bytes(head[2:7])
-            totalPackets = int.to_bytes(head[8:13])
+            recivedPacketNumber = int.to_bytes(head[2:6])
+            totalPackets = int.to_bytes(head[7:])
 
             payload = com.getData(payloadSize)
 
