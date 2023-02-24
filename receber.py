@@ -101,8 +101,7 @@ def main():
         data.append(payload)
 
         while len(data) <= totalPackets:
-
-            print(f"Data:{data}, Data lengt:{len(data)}")
+            print(f"Packet {len(data) + 1 } of {totalPackets} received.") # DEBUG
 
             payloadSize = int.from_bytes(head[:1], byteorder='big') 
             recivedPacketNumber = int.from_bytes(head[2:6], byteorder='big') 
@@ -115,9 +114,9 @@ def main():
 
             data.append(payload)
 
-        data = b''.join(data)
-
         print("Data received length: ", len(data))
+
+        data = b''.join(data)
 
         print("Data received: ", data)
 
