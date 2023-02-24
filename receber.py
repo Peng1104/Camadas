@@ -48,10 +48,10 @@ def confirmHandshake(com: enlace) -> bool:
         return True
     return False
 
-def validatePacket(com: enlace, packetNumber: int, data: list) -> bool:
+def validatePacket(com: enlace, packetNumber: int, data: list, end: bytes) -> bool:
 
     # Checks if the packet is not valid
-    if len(data) + 1 != packetNumber:
+    if len(data) + 1 != packetNumber or end != PACKET_END:
         print(f"Packet {packetNumber} is not valid.")
 
         payload = packetNumber.to_bytes(length=5, byteorder='big')
@@ -95,7 +95,9 @@ def main():
 
         payload, _ = com.getData(payloadSize)
 
-        if not validatePacket(com, recivedPacketNumber, data):
+        end, _ = com.getData(3)
+
+        if not validatePacket(com, recivedPacketNumber, data, end):
             return
 
         data.append(payload)
@@ -103,13 +105,17 @@ def main():
         while len(data) <= totalPackets:
             print(f"Packet {len(data) + 1 } of {totalPackets} received.") # DEBUG
 
+            head, _ = com.getData(12)
+
             payloadSize = int.from_bytes(head[:1], byteorder='big') 
             recivedPacketNumber = int.from_bytes(head[2:6], byteorder='big') 
             totalPackets = int.from_bytes(head[7:], byteorder='big') 
 
             payload, _ = com.getData(payloadSize)
 
-            if not validatePacket(com, recivedPacketNumber, data):
+            end, _ = com.getData(3)
+
+            if not validatePacket(com, recivedPacketNumber, data, end):
                 return
 
             data.append(payload)
