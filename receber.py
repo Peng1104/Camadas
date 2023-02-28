@@ -33,8 +33,8 @@ def confirmHandshake(com: enlace) -> bool:
     print("Handshake received.") # DEBUG
 
     # Reads the handshake packet
-    payloadSize = int.from_bytes(handshake[:1], byteorder='big')
-    totalPackets = int.from_bytes(handshake[2:6], byteorder='big')
+    payloadSize = int.from_bytes(handshake[:2], byteorder='big')
+    totalPackets = int.from_bytes(handshake[2:7], byteorder='big')
     packetNumber = int.from_bytes(handshake[7:], byteorder='big')
 
     end, _ = com.getData(3)
@@ -85,9 +85,11 @@ def main():
         head, _ = com.getData(12)  #Wait for packet head
 
         # Reads the head
-        payloadSize = int.from_bytes(head[:1], byteorder='big')
-        totalPackets = int.from_bytes(head[2:6], byteorder='big')
+        payloadSize = int.from_bytes(head[:2], byteorder='big')
+        totalPackets = int.from_bytes(head[2:7], byteorder='big')
         recivedPacketNumber = int.from_bytes(head[7:], byteorder='big')           #Must read the first packet to get it
+
+        print(f'Payload Size: {payloadSize}')
 
         # Reads payload data
 
@@ -97,22 +99,19 @@ def main():
 
         end, _ = com.getData(3)
 
-        print(int.from_bytes(end, byteorder='big'))
-        print(int.from_bytes(PACKET_END, byteorder='big'))
-
         if not validatePacket(com, recivedPacketNumber, data, end):
             return
 
         data.append(payload)
 
-        while len(data) <= totalPackets:
+        while len(data) < totalPackets:
             print(f"Reading {len(data) + 1} of {totalPackets}.") # DEBUG
 
             head, _ = com.getData(12)
 
-            payloadSize = int.from_bytes(head[:1], byteorder='big') 
-            recivedPacketNumber = int.from_bytes(head[2:6], byteorder='big') 
-            totalPackets = int.from_bytes(head[7:], byteorder='big') 
+            payloadSize = int.from_bytes(head[:2], byteorder='big') 
+            totalPackets = int.from_bytes(head[2:7], byteorder='big') 
+            recivedPacketNumber = int.from_bytes(head[7:], byteorder='big') 
 
             payload, _ = com.getData(payloadSize)
 

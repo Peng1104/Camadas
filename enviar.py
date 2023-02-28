@@ -44,8 +44,8 @@ def sendHandshake(com: enlace) -> bool:
 
     head, _ = com.getData(12)
 
-    payloadSize = int.from_bytes(head[:1], byteorder='big')
-    totalPackets = int.from_bytes(head[2:6], byteorder='big')
+    payloadSize = int.from_bytes(head[:2], byteorder='big')
+    totalPackets = int.from_bytes(head[2:7], byteorder='big')
     packetNumber = int.from_bytes(head[7:], byteorder='big')
 
     end, _ = com.getData(3)
@@ -72,6 +72,8 @@ def sendPacket(packet: bytes, com: enlace, counter: int = 1) -> bool:
     response, _ = com.getData(12)  # Recebe a resposta do servidor
 
     payloadSize = int.from_bytes(response[:1], byteorder='big')
+
+    responsePayload = b''
 
     if payloadSize > 0:
         responsePayload, _ = com.getData(payloadSize)
@@ -105,7 +107,7 @@ def main():
 
         print("Data creation start")
 
-        with open("img/1by1Image.png", "rb") as file:
+        with open("img/projeto3.png", "rb") as file:
             data = file.read()
 
         total = len(data) // 50 + 1
