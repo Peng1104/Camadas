@@ -74,15 +74,13 @@ def sendPacket(packet: bytes, com: enlace, counter: int = 1) -> bool:
     payloadSize = int.from_bytes(response[:1], byteorder='big')
 
     if payloadSize > 0:
-        responsePayload = com.getData(payloadSize)
+        responsePayload, _ = com.getData(payloadSize)
 
     end, _ = com.getData(3)
 
     if payloadSize == 0 and end == PACKET_END:
         print("Pacote recebido com sucesso.")
         return True
-
-    responsePayload, _ = com.getData(payloadSize)
 
     print(
         f"Pacote rejeitado pelo servidor error code {int.from_bytes(responsePayload, byteorder='big')}. Tentando novamente...")
