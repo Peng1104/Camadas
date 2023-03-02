@@ -1,4 +1,7 @@
 from enlace import enlace
+from os import getcwd
+from os.path import basename
+from datetime import datetime
 import time
 
 # voce deverá descomentar e configurar a porta com através da qual ira fazer comunicaçao
@@ -15,11 +18,16 @@ SERIAL_PORT_NAME = "/dev/ttyACM0"            # Ubuntu (variacao de)
 # Payload 0 - 50 Bytes, the packet data.
 # # End of packet 3 Bytes (0xDD 0xEE 0xFF)
 
-PACKET_END = b'\xDD\xEE\xFF'
+PACKET_END = b'\xAA\xBB\xCC\xDD'
+LOG_FILE = getcwd() + "/logs/" + basename(__file__) + ".log"
 
 HANDSHAKE = int(0).to_bytes(length=2, byteorder='big') + int(0).to_bytes(
     length=5, byteorder='big') + int(0).to_bytes(length=5, byteorder='big') + PACKET_END
 
+def log(msg : str) -> None:
+    with open(LOG_FILE, "a", encoding='utf-8') as file:
+        file.write(datetime.now().strftime('[%d/%m/%Y %H:%M:%S] ') + msg)
+        print(msg)
 
 def sendHandshake(com: enlace) -> bool:
     com.sendData(HANDSHAKE)
