@@ -12,22 +12,26 @@ import time
 # use uma das 3 opcoes para atribuir à variável a porta usada
 SERIAL_PORT_NAME = "/dev/ttyACM0"            # Ubuntu (variacao de)
 # SERIAL_PORT_NAME = "/dev/tty.usbmodem1411"   # Mac    (variacao de)
-#SERIAL_PORT_NAME = "COM3"                    # Windows(variacao de)
+# SERIAL_PORT_NAME = "COM3"                    # Windows(variacao de)
 
 # HEAD format PayloadSize 2 Byte + 5 Byte TotalPackets + 5 Bytes PacketNumber
 # Payload 0 - 50 Bytes, the packet data.
 # # End of packet 3 Bytes (0xDD 0xEE 0xFF)
 
-PACKET_END = b'\xAA\xBB\xCC\xDD'
 LOG_FILE = getcwd() + "/logs/" + basename(__file__) + ".log"
+
+
+def log(msg: str) -> None:
+    with open(LOG_FILE, "a", encoding='utf-8') as file:
+        file.write(datetime.now().strftime('[%d/%m/%Y %H:%M:%S] ') + msg)
+        print(msg)
+
+
+PACKET_END = b'\xAA\xBB\xCC\xDD'
 
 HANDSHAKE = int(0).to_bytes(length=2, byteorder='big') + int(0).to_bytes(
     length=5, byteorder='big') + int(0).to_bytes(length=5, byteorder='big') + PACKET_END
 
-def log(msg : str) -> None:
-    with open(LOG_FILE, "a", encoding='utf-8') as file:
-        file.write(datetime.now().strftime('[%d/%m/%Y %H:%M:%S] ') + msg)
-        print(msg)
 
 def sendHandshake(com: enlace) -> bool:
     com.sendData(HANDSHAKE)
@@ -149,14 +153,14 @@ def main():
             #     print("Sending fake packe with wrong packet number")
             #     head = int(0).to_bytes(length=2, byteorder='big') + total.to_bytes(
             #         length=5, byteorder='big') + (counter + 1).to_bytes(length=5, byteorder='big')
-                
+
             #     sendPacket(head + PACKET_END, com)
 
             if counter % 5 == 0:
                 print("Sending fake packet with wrong payload length")
                 head = int(1).to_bytes(length=2, byteorder='big') + total.to_bytes(
                     length=5, byteorder='big') + (counter + 1).to_bytes(length=5, byteorder='big')
-                
+
                 payload = b'\x00\x00\00\x00'
 
                 sendPacket(head + payload + PACKET_END, com)
