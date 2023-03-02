@@ -55,15 +55,17 @@ def validatePacket(com: enlace, packetNumber: int, data: list, end: bytes) -> bo
     error = False
 
     if len(data) + 1 != packetNumber:
-        print(f"Packet {packetNumber} is not valid, expected {len(data) + 1}.")
+        print(
+            f"Packet {len(data) + 1} is not valid, recived packet numer is {packetNumber}.")
         error = True
 
     # Checks if the packet is not valid
     if end != PACKET_END:
         print(
-            f"Packet {packetNumber} is not valid, end of packet is not correct. received: {end} expected: {PACKET_END}")
+            f"Packet {len(data) + 1} is not valid, end of packet is not correct. Received: {end} expected: {PACKET_END}")
+        com.rx.clearBuffer()
         error = True
-    
+
     if error:
         payload = (len(data) + 1).to_bytes(length=5, byteorder='big')
 
@@ -130,7 +132,7 @@ def main():
             end, _ = com.getData(3)
 
             if not validatePacket(com, recivedPacketNumber, data, end):
-                return
+                continue
 
             data.append(payload)
 
@@ -152,6 +154,7 @@ def main():
     except Exception as e:
         print("Error ->", e)
         com.disable()
+
 
     # so roda o main quando for executado do terminal ... se for chamado dentro de outro modulo nao roda
 if __name__ == "__main__":

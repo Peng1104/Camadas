@@ -107,7 +107,7 @@ def main():
 
         print("Data creation start")
 
-        with open("img/projeto3.png", "rb") as file:
+        with open("img/coracao.png", "rb") as file:
             data = file.read()
 
         total = len(data) // 50 + 1
@@ -132,14 +132,34 @@ def main():
 
         print("Sending data...")
 
+        counter = 0
+
         while len(packets) > 0:
+            counter += 1
+
+            # if counter % 10 == 0:
+            #     print("Sending fake packe with wrong packet number")
+            #     head = int(0).to_bytes(length=2, byteorder='big') + total.to_bytes(
+            #         length=5, byteorder='big') + (counter + 1).to_bytes(length=5, byteorder='big')
+                
+            #     sendPacket(head + PACKET_END, com)
+
+            if counter % 5 == 0:
+                print("Sending fake packet with wrong payload length")
+                head = int(1).to_bytes(length=2, byteorder='big') + total.to_bytes(
+                    length=5, byteorder='big') + (counter + 1).to_bytes(length=5, byteorder='big')
+                
+                payload = b'\x00\x00\00\x00'
+
+                sendPacket(head + payload + PACKET_END, com)
+
             if sendPacket(packets.pop(0), com):
                 print(
                     f"Packet {total - len(packets)}/{total} sended, {com.tx.getStatus()} bytes.")
             else:
                 print(
                     f"Error while sending data, {total - len(packets)} packets sended")
-                return
+                continue
 
         # A camada enlace possui uma camada inferior, TX possui um método para conhecermos o status da transmissão
         # O método não deve estar fincionando quando usado como abaixo. deve estar retornando zero. Tente entender como esse método funciona e faça-o funcionar.
