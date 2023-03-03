@@ -16,7 +16,8 @@ SERIAL_PORT_NAME = "/dev/ttyACM1"            # Ubuntu (variacao de)
 
 LOG_FILE = getcwd() + "/logs/" + basename(__file__) + ".log"
 
-def log(msg : str) -> None:
+
+def log(msg: str) -> None:
     with open(LOG_FILE, "a", encoding='utf-8') as file:
         file.write(datetime.now().strftime('[%d/%m/%Y %H:%M:%S] ') + msg)
         print(msg)
@@ -27,6 +28,7 @@ def log(msg : str) -> None:
 # h6 – Pacote solicitado para recomeço quando a erro no envio # h7 – Ùltimo pacote recebido com sucesso #h8 – h9 – CRC (Por ora deixe em branco. Fará parte do projeto 5).
 # Payload 0 - 114 Bytes, the packet data.
 # End of packet 4 Bytes (0xAA 0xBB 0xCC 0xDD)
+
 
 PACKET_END = b'\xAA\xBB\xCC\xDD'
 
@@ -39,13 +41,10 @@ PACKET_TYPE6_ERROR = b'\x06'
 
 SERVER_ID = b'\x45'
 
-HANDSHAKE = PACKET_TYPE1_HANDSHAKE + SERVER_ID + int(0).to_bytes(length=1, byteorder='big') + PACKET_END
+IDLE_PACKET = PACKET_TYPE2_SERVER_LIVRE + \
+    int(0).to_bytes(length=9, byteorder='big') + PACKET_END
 
-CONFIRMATION_PACKET = int(0).to_bytes(length=2, byteorder='big') + int(1).to_bytes(
-    length=5, byteorder='big') + int(1).to_bytes(length=5, byteorder='big') + PACKET_END
-
-
-def confirmHandshake(com: enlace) -> bool:
+def confirmHandshake(com: enlace) -> list:
     # Wait for client to send handshake
 
     print("Waiting for handshake...")  # DEBUG
@@ -64,17 +63,21 @@ def confirmHandshake(com: enlace) -> bool:
     com.rx.clearBuffer()
 
     # Checks if the handshake is valid
-    if msgType == 1 and serverId != SERVER_ID and totalPackets == 0 and end == PACKET_END:
+    if msgType == 1 and serverId == SERVER_ID and end == PACKET_END:
         print("Handshake received is valid.")
         # Send handshake confirmation
-        com.sendData(HANDSHAKE)
-        return True
-    return False
+        com.sendData(IDLE_PACKET)
+        return [True, totalPackets]
+    return [False, 0]
 
 
-def validatePacket(com: enlace, packetNumber: int, data: list, end: bytes) -> bool:
+def validatePacket(com: enlace, packetNumber: int, data: list, end: bytes, msgType: int) -> bool:
 
     error = False
+
+    if msgType != 3:
+        print(f"Packet {len(data) + 1} is not valid, msgType is not 3.")
+        error = True
 
     if len(data) + 1 != packetNumber:
         print(
@@ -89,17 +92,19 @@ def validatePacket(com: enlace, packetNumber: int, data: list, end: bytes) -> bo
         error = True
 
     if error:
-        payload = (len(data) + 1).to_bytes(length=5, byteorder='big')
-
         # Send error packet to client
-        com.sendData(len(payload).to_bytes(length=2, byteorder='big') + int(1).to_bytes(
-            length=5, byteorder='big') + int(1).to_bytes(length=5, byteorder='big') + payload + PACKET_END)
+        com.sendData(PACKET_TYPE6_ERROR + int(0).to_bytes(
+            length=5, byteorder='big') + (len(data)+1).to_bytes(length=1, byteorder='big') + len(data).to_bytes(length=1, byteorder='big') + int(0).to_bytes(
+            length=2, byteorder='big') + PACKET_END)
 
     else:
         print(f"Packet {packetNumber} is valid.")
 
         # Send confirmation packet to client
-        com.sendData(CONFIRMATION_PACKET)
+
+        confirmationPacket = PACKET_TYPE4_VALIDATION + int(0).to_bytes(length=6, byteorder='big') + packetNumber.to_bytes(length=1, byteorder='big') + int(0).to_bytes(length=2, byteorder='big') + PACKET_END
+
+        com.sendData(confirmationPacket)
         time.sleep(0.5)
 
         return True
@@ -111,49 +116,31 @@ def main():
         com = enlace(SERIAL_PORT_NAME)
         com.enable()
 
+        handshakeValid, totalPackets = confirmHandshake(com)
+
         # Wait for handshake confirmation
-        if not confirmHandshake(com):
+        if not handshakeValid:
             return
-
-        # Read first packet (Especial Case)
-
-        head, _ = com.getData(12)  # Wait for packet head
-
-        # Reads the head
-        payloadSize = int.from_bytes(head[:2], byteorder='big')
-        totalPackets = int.from_bytes(head[2:7], byteorder='big')
-        # Must read the first packet to get it
-        recivedPacketNumber = int.from_bytes(head[7:], byteorder='big')
-
-        print(f'Payload Size: {payloadSize}')
-
-        # Reads payload data
 
         data = []
-
-        payload, _ = com.getData(payloadSize)
-
-        end, _ = com.getData(3)
-
-        if not validatePacket(com, recivedPacketNumber, data, end):
-            return
-
-        data.append(payload)
 
         while len(data) < totalPackets:
             print(f"Reading {len(data) + 1} of {totalPackets}.")  # DEBUG
 
             head, _ = com.getData(12)
 
-            payloadSize = int.from_bytes(head[:2], byteorder='big')
-            totalPackets = int.from_bytes(head[2:7], byteorder='big')
-            recivedPacketNumber = int.from_bytes(head[7:], byteorder='big')
+            msgType = int.from_bytes(head[:1], byteorder='big')
+            totalPackets = int.from_bytes(head[2:3], byteorder='big')
+            recivedPacketNumber = int.from_bytes(head[3:4], byteorder='big')
+            payloadSize = int.from_bytes(head[4:5], byteorder='big')
+            restartPacket = int.from_bytes(head[5:6], byteorder='big')
+            lastValidPacket = int.from_bytes(head[6:7], byteorder='big')
 
             payload, _ = com.getData(payloadSize)
 
-            end, _ = com.getData(3)
+            end, _ = com.getData(4)
 
-            if not validatePacket(com, recivedPacketNumber, data, end):
+            if not validatePacket(com, recivedPacketNumber, data, end, msgType):
                 continue
 
             data.append(payload)
