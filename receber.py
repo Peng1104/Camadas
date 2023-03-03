@@ -66,6 +66,7 @@ def confirmHandshake(com: enlace) -> list:
     if msgType == 1 and serverId == SERVER_ID and end == PACKET_END:
         print("Handshake received is valid.")
         # Send handshake confirmation
+        time.sleep(1) # Wait for client to be ready
         com.sendData(IDLE_PACKET)
         return [True, totalPackets]
     return [False, 0]
@@ -124,7 +125,30 @@ def main():
 
         data = []
 
+        counter = 0
+
         while len(data) < totalPackets:
+
+            while com.rx.getIsEmpty() and counter < 21:
+                time.sleep(1)
+                counter += 1
+
+                if counter % 2 == 0:
+                    print("Reenviando pacote de confirmação.")
+
+                    com.sendData(PACKET_TYPE4_VALIDATION + int(0).to_bytes(length=6, byteorder='big') + recivedPacketNumber.to_bytes(length=1, byteorder='big') + int(0).to_bytes(length=2, byteorder='big') + PACKET_END)
+
+            if counter >= 20:
+                print("Time out, sending timeout packet.")
+
+                com.sendData(PACKET_TYPE5_TIMEOUT + int(0).to_bytes(length=9, byteorder='big') + PACKET_END)
+
+                com.disable()
+                print("Conexão encerrada.")
+                return
+            
+            counter = 0
+
             print(f"Reading {len(data) + 1} of {totalPackets}.")  # DEBUG
 
             head, _ = com.getData(12)
