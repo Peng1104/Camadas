@@ -43,5 +43,4 @@ class enlace(object):
         self.tx.sendBuffer(asarray(data))
 
     def getData(self, size):
-        data = self.rx.getNData(size)
-        return (data, len(data))
+        return self.rx.getNData(size)

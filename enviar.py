@@ -22,9 +22,10 @@ LOG_FILE = getcwd() + "/logs/" + basename(__file__) + ".log"
 
 
 def log(msg: str) -> None:
+    print(msg)
+
     with open(LOG_FILE, "a", encoding='utf-8') as file:
         file.write(datetime.now().strftime('[%d/%m/%Y %H:%M:%S] ') + msg)
-        print(msg)
 
 
 PACKET_END = b'\xAA\xBB\xCC\xDD'
@@ -189,6 +190,7 @@ def main():
         print("Error ->")
         print(e)
         com.disable()
+
 
     # so roda o main quando for executado do terminal ... se for chamado dentro de outro modulo nao roda
 if __name__ == "__main__":
