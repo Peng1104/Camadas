@@ -2,7 +2,8 @@ from enlace import enlace
 import time
 from datetime import datetime
 from os import getcwd
-from os.path import basename
+from os.path import basename, exists, isfile
+from zipfile import ZipFile
 
 # voce deverá descomentar e configurar a porta com através da qual ira fazer comunicaçao
 #   para saber a sua porta, execute no terminal :
@@ -15,6 +16,10 @@ SERIAL_PORT_NAME = "/dev/ttyACM1"            # Ubuntu (variacao de)
 # SERIAL_PORT_NAME = "COM5"                    # Windows(variacao de)
 
 LOG_FILE = getcwd() + "/logs/" + basename(__file__) + ".log"
+
+if exists(LOG_FILE):
+    if isfile(LOG_FILE):
+        ZipFile(LOG_FILE + ".zip", "a").write(LOG_FILE)
 
 
 def log(msg: str) -> None:
@@ -41,14 +46,14 @@ def log(msg: str) -> None:
 
 PACKET_END = b'\xAA\xBB\xCC\xDD'
 
-HANDSHAKE = b'\x01'    # Type 01 (Handshake)
+HANDSHAKE = b'\x01'     # Type 01 (Handshake)
 SERVER_LIVRE = b'\x02'  # Type 02 (Handshake response)
-DATA = b'\x03'         # Type 03 (Data)
-VALIDATION = b'\x04'   # Type 04 (Validation)
-TIMEOUT = b'\x05'      # Type 05 (Timeout)
-ERROR = b'\x06'        # Type 06 (Error)
+DATA = b'\x03'          # Type 03 (Data)
+VALIDATION = b'\x04'    # Type 04 (Validation)
+TIMEOUT = b'\x05'       # Type 05 (Timeout)
+ERROR = b'\x06'         # Type 06 (Error)
 
-SERVER_ID = b'\x40'    # Server ID (64)
+SERVER_ID = b'\x40'     # Server ID (64)
 
 IDLE_PACKET = SERVER_LIVRE + b'\x00' + b'\x00' + b'\x01' + b'\x01' + \
     int(0).to_bytes(length=5, byteorder='big') + PACKET_END
@@ -57,7 +62,7 @@ TIMEOUT_PACKET = TIMEOUT + b'\x00' + b'\x00' + b'\x01' + b'\x01' + \
     int(0).to_bytes(length=5, byteorder='big') + PACKET_END
 
 
-def handshake_confirmation(com: enlace) -> list:
+def handshake_confirmation(com: enlace) -> tuple[int, int]:
     # Wait for client to send handshake
 
     log("Waiting for handshake packet...")
@@ -156,7 +161,7 @@ def main():
                 time.sleep(1)
                 timer += 1
 
-                if timer % 2 == 0:
+                if timer % 2 == 0 and timer < 20:
                     log("Reenviando pacote de confirmação.")
 
                     validation_packet = VALIDATION + b'\x00' + b'\x00' + b'\x01' + b'\x01' + \
@@ -183,7 +188,8 @@ def main():
                 data += nextData
                 packetCounter += 1
 
-                log(f"Sending validation for packet {packetCounter} of {totalPackets}.")
+                log(
+                    f"Sending validation for packet {packetCounter} of {totalPackets}.")
 
                 validation_packet = VALIDATION + b'\x00' + b'\x00' + b'\x01' + b'\x01' + \
                     b'\x00' + b'\x00' + packetCounter.to_bytes(length=1, byteorder='big') + \
@@ -203,7 +209,29 @@ def main():
 
         log(f"Writting file with {len(data)} bytes.")
 
-        with open("img/received.png", "wb") as file:
+        match archiveId:
+            case 1:
+                extention = ".txt"
+            case 2:
+                extention = ".png"
+            case 3:
+                extention = ".jpg"
+            case 4:
+                extention = ".zip"
+            case 5:
+                extention = ".mp3"
+            case 6:
+                extention = ".mp4"
+            case 7:
+                extention = ".pdf"
+            case 8:
+                extention = ".docx"
+            case 9:
+                extention = ".pptx"
+            case 10:
+                extention = ".xlsx"
+
+        with open("data/recived" + extention, "wb") as file:
             file.write(data)
 
         log("File written.")
@@ -217,7 +245,6 @@ def main():
     except Exception as e:
         log("Error ->", e)
         com.disable()
-
 
     # so roda o main quando for executado do terminal ... se for chamado dentro de outro modulo nao roda
 if __name__ == "__main__":

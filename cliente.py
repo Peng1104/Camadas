@@ -14,23 +14,42 @@ SERIAL_PORT_NAME = "/dev/ttyACM0"            # Ubuntu (variacao de)
 # SERIAL_PORT_NAME = "/dev/tty.usbmodem1411"   # Mac    (variacao de)
 # SERIAL_PORT_NAME = "COM3"                    # Windows(variacao de)
 
-# HEAD format PayloadSize 2 Byte + 5 Byte TotalPackets + 5 Bytes PacketNumber
-# Payload 0 - 50 Bytes, the packet data.
-# # End of packet 3 Bytes (0xDD 0xEE 0xFF)
+# HEAD
+# h0 – Tipo de mensagem
+# h1 – Se tipo for handshake: número do servidor, se não 0
+# h2 - 0
+# h3 – Número total de pacotes do arquivo
+# h4 – Número do pacote sendo enviado
+# h5 – Se tipo for handshake: id do arquivo (crie um para cada arquivo). Se tipo for dados: tamanho do payload.
+# h6 – Pacote solicitado para recomeço quando a erro no envio
+# h7 – Ùltimo pacote recebido com sucesso
+# h8h9 – CRC (Por ora deixe em branco. Fará parte do projeto 5).
+# Payload 0 - 114 Bytes, the packet data.
+# End of packet 4 Bytes (0xAA 0xBB 0xCC 0xDD)
 
 LOG_FILE = getcwd() + "/logs/" + basename(__file__) + ".log"
 
 
 def log(msg: str) -> None:
+    msg = datetime.now().strftime('[%d/%m/%Y %H:%M:%S] ') + msg
+
     print(msg)
 
     with open(LOG_FILE, "a", encoding='utf-8') as file:
-        file.write(datetime.now().strftime('[%d/%m/%Y %H:%M:%S] ') + msg)
-
+        file.write(msg)
 
 PACKET_END = b'\xAA\xBB\xCC\xDD'
 
-HANDSHAKE = int(0).to_bytes(length=2, byteorder='big') + int(0).to_bytes(
+HANDSHAKE = b'\x01'    # Type 01 (Handshake)
+SERVER_LIVRE = b'\x02'  # Type 02 (Handshake response)
+DATA = b'\x03'         # Type 03 (Data)
+VALIDATION = b'\x04'   # Type 04 (Validation)
+TIMEOUT = b'\x05'      # Type 05 (Timeout)
+ERROR = b'\x06'        # Type 06 (Error)
+
+SERVER_ID = b'\x40'    # Server ID (64)
+
+HANDSHAKE = HANDSHAKE + SERVER_ID + b'\x00'  + int(0).to_bytes(
     length=5, byteorder='big') + int(0).to_bytes(length=5, byteorder='big') + PACKET_END
 
 
