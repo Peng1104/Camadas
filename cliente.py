@@ -38,6 +38,7 @@ def log(msg: str) -> None:
     with open(LOG_FILE, "a", encoding='utf-8') as file:
         file.write(msg)
 
+
 PACKET_END = b'\xAA\xBB\xCC\xDD'
 
 HANDSHAKE = b'\x01'    # Type 01 (Handshake)
@@ -49,8 +50,9 @@ ERROR = b'\x06'        # Type 06 (Error)
 
 SERVER_ID = b'\x40'    # Server ID (64)
 
-HANDSHAKE = HANDSHAKE + SERVER_ID + b'\x00'  + int(0).to_bytes(
-    length=5, byteorder='big') + int(0).to_bytes(length=5, byteorder='big') + PACKET_END
+HANDSHAKE_START = HANDSHAKE + SERVER_ID + b'\x00' + b'\x01' + b'\x01'
+
+HANDSHAKE_END = int(0).to_bytes(length=4, byteorder='big') + PACKET_END
 
 
 def sendHandshake(com: enlace) -> bool:
@@ -139,24 +141,26 @@ def main():
 
         print("Data creation start")
 
-        with open("img/coracao.png", "rb") as file:
-            data = file.read()
+        file = "img/coracao.png"
 
-        total = len(data) // 50 + 1
+        with open(file, "rb") as f:
+            data = f.read()
+
+        total = len(data) // 114 + 1
 
         packets = []
 
-        while len(data) > 50:
-            payload = data[:50]
-            data = data[50:]
+        while len(data) > 114:
+            payload = data[:114]
+            data = data[114:]
 
-            head = len(payload).to_bytes(length=2, byteorder='big') + total.to_bytes(
-                length=5, byteorder='big') + int(len(packets) + 1).to_bytes(length=5, byteorder='big')
+            head = DATA + b'\x00' + b'\x00' + total.to_bytes(length=1, byteorder='big') + (len(packets) + 1).to_bytes(
+                length=1, byteorder='big') + int(len(payload)).to_bytes(length=1, byteorder='big') + int(0).to_bytes(length=4, byteorder='big')
 
             packets.append(head + payload + PACKET_END)
 
-        head = int(len(data)).to_bytes(length=2, byteorder='big') + total.to_bytes(
-            length=5, byteorder='big') + int(len(packets) + 1).to_bytes(length=5, byteorder='big')
+        head = DATA + b'\x00' + b'\x00' + total.to_bytes(length=1, byteorder='big') + (len(packets) + 1).to_bytes(
+                length=1, byteorder='big') + int(len(payload)).to_bytes(length=1, byteorder='big') + int(0).to_bytes(length=4, byteorder='big')
 
         packets.append(head + data + PACKET_END)
 
@@ -209,7 +213,6 @@ def main():
         print("Error ->")
         print(e)
         com.disable()
-
 
     # so roda o main quando for executado do terminal ... se for chamado dentro de outro modulo nao roda
 if __name__ == "__main__":
