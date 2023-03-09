@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 #####################################################
 # Camada Física da Computação
-#Carareto
-#17/02/2018
+# Carareto
+# 17/02/2018
 #  Camada de Enlace
 ####################################################
 
@@ -20,13 +20,14 @@ from interfaceFisica import fisica
 from enlaceRx import RX
 from enlaceTx import TX
 
+
 class enlace(object):
-    
+
     def __init__(self, name):
-        self.fisica      = fisica(name)
-        self.rx          = RX(self.fisica)
-        self.tx          = TX(self.fisica)
-        self.connected   = False
+        self.fisica = fisica(name)
+        self.rx = RX(self.fisica)
+        self.tx = TX(self.fisica)
+        self.connected = False
 
     def enable(self):
         self.fisica.open()

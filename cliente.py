@@ -1,7 +1,7 @@
 from enlace import enlace
-from os import getcwd
-from os.path import basename
 from datetime import datetime
+from zipfile import ZipFile
+import os
 import time
 
 # voce deverá descomentar e configurar a porta com através da qual ira fazer comunicaçao
@@ -27,7 +27,20 @@ SERIAL_PORT_NAME = "/dev/ttyACM0"            # Ubuntu (variacao de)
 # Payload 0 - 114 Bytes, the packet data.
 # End of packet 4 Bytes (0xAA 0xBB 0xCC 0xDD)
 
-LOG_FILE = getcwd() + "/logs/" + basename(__file__) + ".log"
+LOG_FILE = os.getcwd() + "/logs/" + os.path.basename(__file__)
+
+if os.path.exists(LOG_FILE + ".log"):
+    if os.path.isfile(LOG_FILE + ".log"):
+        with open(LOG_FILE + ".log", "r") as file:
+            last_line = file.readlines()[-1]
+
+        fileName = last_line.split('] ')[0][1:]
+
+        os.rename(LOG_FILE, fileName)
+        ZipFile(LOG_FILE + ".zip", "a").write(fileName)
+        os.remove(fileName)
+
+LOG_FILE += ".log"
 
 
 def log(msg: str) -> None:
@@ -37,6 +50,8 @@ def log(msg: str) -> None:
 
     with open(LOG_FILE, "a", encoding='utf-8') as file:
         file.write(msg)
+        file.write(msg)
+
 
 
 PACKET_END = b'\xAA\xBB\xCC\xDD'
