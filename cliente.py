@@ -52,8 +52,6 @@ def log(msg: str) -> None:
         file.write(msg)
         file.write(msg)
 
-
-
 PACKET_END = b'\xAA\xBB\xCC\xDD'
 
 HANDSHAKE = b'\x01'    # Type 01 (Handshake)
@@ -68,7 +66,6 @@ SERVER_ID = b'\x40'    # Server ID (64)
 HANDSHAKE_START = HANDSHAKE + SERVER_ID + b'\x00' + b'\x01' + b'\x01'
 
 HANDSHAKE_END = int(0).to_bytes(length=4, byteorder='big') + PACKET_END
-
 
 def sendHandshake(com: enlace) -> bool:
     com.sendData(HANDSHAKE)
