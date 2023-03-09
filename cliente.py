@@ -204,7 +204,7 @@ def sendPacket(packet: bytes, com: enlace, counter: int, total: int) -> bool:
         com.rx.clearBuffer()
         return False
 
-    if type == VALIDATION and packetId == counter:
+    if type == VALIDATION and last_valid == counter:
         log("Packet sent successfully")
         return True
 

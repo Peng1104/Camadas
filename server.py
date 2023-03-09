@@ -168,8 +168,8 @@ def main():
 
         while packetCounter < totalPackets:
             while com.rx.getBufferLen() < 14:
-                time.sleep(1)
-                timer += 1
+                time.sleep(0.5)
+                timer += 0.5
 
                 if timer % 2 == 0 and timer < 20:
                     log(f"Reenviando pacote de confirmação para o pacote {packetCounter}")
