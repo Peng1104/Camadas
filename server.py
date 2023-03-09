@@ -14,16 +14,17 @@ SERIAL_PORT_NAME = "/dev/ttyACM1"            # Ubuntu (variacao de)
 # SERIAL_PORT_NAME = "/dev/tty.usbmodem1411"   # Mac    (variacao de)
 # SERIAL_PORT_NAME = "COM5"                    # Windows(variacao de)
 
-LOG_FILE = os.getcwd() + "/logs/" + os.path.basename(__file__)
+LOG_FILE = os.getcwd() + "/logs/" + os.path.splitext(os.path.basename(__file__))[0]
 
 if os.path.exists(LOG_FILE + ".log"):
     if os.path.isfile(LOG_FILE + ".log"):
         with open(LOG_FILE + ".log", "r") as file:
             last_line = file.readlines()[-1]
 
-        fileName = last_line.split('] ')[0][1:]
+        fileName = last_line.split('] ')[0][1:].replace(
+            '/', '-').replace(':', '.') + ".log"
 
-        os.rename(LOG_FILE, fileName)
+        os.rename(LOG_FILE + ".log", fileName)
         ZipFile(LOG_FILE + ".zip", "a").write(fileName)
         os.remove(fileName)
 
@@ -34,6 +35,8 @@ def log(msg: str) -> None:
     msg = datetime.now().strftime('[%d/%m/%Y %H:%M:%S] ') + msg
 
     print(msg)
+
+    os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
 
     with open(LOG_FILE, "a", encoding='utf-8') as file:
         file.write(msg)
@@ -61,7 +64,7 @@ VALIDATION = b'\x04'    # Type 04 (Validation)
 TIMEOUT = b'\x05'       # Type 05 (Timeout)
 ERROR = b'\x06'         # Type 06 (Error)
 
-SERVER_ID = b'\x40'     # Server ID (64)
+SERVER_ID = 64          # Server ID (64)
 
 IDLE_PACKET = SERVER_LIVRE + b'\x00' + b'\x00' + b'\x01' + b'\x01' + \
     int(0).to_bytes(length=5, byteorder='big') + PACKET_END
@@ -78,13 +81,13 @@ def handshake_confirmation(com: enlace) -> tuple[int, int]:
     handshake = com.getData(10)
 
     # Reads the handshake packet
-    type = int.from_bytes(handshake[0], byteorder='big')
-    serverId = int.from_bytes(handshake[1], byteorder='big')
-    totalPackets = int.from_bytes(handshake[3], byteorder='big')
-    packetId = int.from_bytes(handshake[4], byteorder='big')
-    archiveId = int.from_bytes(handshake[5], byteorder='big')
+    type = handshake[0].to_bytes(length=1, byteorder='big')
+    serverId = handshake[1]
+    totalPackets = handshake[3]
+    packetId = handshake[4]
+    archiveId = handshake[5]
 
-    end = com.getData(3)
+    end = com.getData(4)
     com.rx.clearBuffer()
 
     log("Packet received.")
@@ -93,7 +96,7 @@ def handshake_confirmation(com: enlace) -> tuple[int, int]:
         log("Handshake packet received.")
 
         # Check if the handshake is valid and for this server
-        if serverId == SERVER_ID and packetId == 0:
+        if serverId == SERVER_ID and packetId == 1:
             log("Handshake packet is valid.")
 
             # Send handshake confirmation
@@ -108,15 +111,14 @@ def handshake_confirmation(com: enlace) -> tuple[int, int]:
 
 
 def getNextData(com: enlace, expected: int, counter: int, head: bytes) -> bytes:
-    type = int.from_bytes(head[0], byteorder='big')
-    total = int.from_bytes(head[3], byteorder='big')
-    packetNumber = int.from_bytes(head[4], byteorder='big')
-    payloadSize = int.from_bytes(head[5], byteorder='big')
-    lastValid = int.from_bytes(head[7], byteorder='big')
+    type = head[0].to_bytes(length=1, byteorder='big')
+    total = head[3]
+    packetNumber = head[4]
+    payloadSize = head[5]
 
     if type == DATA:
         if total == expected:
-            if lastValid == counter and packetNumber == counter + 1:
+            if packetNumber == counter + 1:
                 log(f"Packet {packetNumber} of {total} received.")
 
                 payload = com.getData(payloadSize)
@@ -170,7 +172,7 @@ def main():
                 timer += 1
 
                 if timer % 2 == 0 and timer < 20:
-                    log("Reenviando pacote de confirmação.")
+                    log(f"Reenviando pacote de confirmação para o pacote {packetCounter}")
 
                     validation_packet = VALIDATION + b'\x00' + b'\x00' + b'\x01' + b'\x01' + \
                         b'\x00' + b'\x00' + packetCounter.to_bytes(length=1, byteorder='big') + \
@@ -251,9 +253,8 @@ def main():
         com.disable()
 
     except Exception as e:
-        log("Error ->", e)
+        print("Error ->", e)
         com.disable()
-
 
     # so roda o main quando for executado do terminal ... se for chamado dentro de outro modulo nao roda
 if __name__ == "__main__":

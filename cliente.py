@@ -34,9 +34,10 @@ if os.path.exists(LOG_FILE + ".log"):
         with open(LOG_FILE + ".log", "r") as file:
             last_line = file.readlines()[-1]
 
-        fileName = last_line.split('] ')[0][1:]
+        fileName = last_line.split('] ')[0][1:].replace(
+            '/', '-').replace(':', '.') + ".log"
 
-        os.rename(LOG_FILE, fileName)
+        os.rename(LOG_FILE + ".log", fileName)
         ZipFile(LOG_FILE + ".zip", "a").write(fileName)
         os.remove(fileName)
 
@@ -48,29 +49,79 @@ def log(msg: str) -> None:
 
     print(msg)
 
+    os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
+
     with open(LOG_FILE, "a", encoding='utf-8') as file:
         file.write(msg)
         file.write(msg)
 
+
 PACKET_END = b'\xAA\xBB\xCC\xDD'
 
-HANDSHAKE = b'\x01'    # Type 01 (Handshake)
+HANDSHAKE = b'\x01'     # Type 01 (Handshake)
 SERVER_LIVRE = b'\x02'  # Type 02 (Handshake response)
-DATA = b'\x03'         # Type 03 (Data)
-VALIDATION = b'\x04'   # Type 04 (Validation)
-TIMEOUT = b'\x05'      # Type 05 (Timeout)
-ERROR = b'\x06'        # Type 06 (Error)
+DATA = b'\x03'          # Type 03 (Data)
+VALIDATION = b'\x04'    # Type 04 (Validation)
+TIMEOUT = b'\x05'       # Type 05 (Timeout)
+ERROR = b'\x06'         # Type 06 (Error)
 
-SERVER_ID = b'\x40'    # Server ID (64)
+SERVER_ID = b'\x40'     # Server ID (64)
 
-HANDSHAKE_START = HANDSHAKE + SERVER_ID + b'\x00' + b'\x01' + b'\x01'
+TIMEOUT_PACKET = TIMEOUT + b'\x00' + b'\x00' + b'\x01' + b'\x01' + \
+    int(0).to_bytes(length=5, byteorder='big') + PACKET_END
 
+HANDSHAKE_START = HANDSHAKE + SERVER_ID + b'\x00'
 HANDSHAKE_END = int(0).to_bytes(length=4, byteorder='big') + PACKET_END
 
-def sendHandshake(com: enlace) -> bool:
-    com.sendData(HANDSHAKE)
 
-    print("Waiting response...")
+def get_extension_id(extension: str) -> int:
+    match extension:
+        case "txt":
+            return 1
+        case "png":
+            return 2
+        case "jpg":
+            return 3
+        case "zip":
+            return 4
+        case "mp3":
+            return 5
+        case "mp4":
+            return 6
+        case "pdf":
+            return 7
+        case "docx":
+            return 8
+        case "pptx":
+            return 9
+        case "xlsx":
+            return 10
+        case _:
+            return -1
+
+
+def sendHandshake(com: enlace, file: str, total: int) -> bool:
+    log(f"Sending handshake... for file {file}")
+
+    extension = file.split('.')[-1]
+
+    extensionID = get_extension_id(extension)
+
+    if extensionID == -1:
+        log(f"Error: Invalid file extension, {extension}")
+        log("Tentar novamente? (S/N)")
+
+        if input().lower() == 's':
+            return sendHandshake(com, file, total)
+
+        com.disable()
+        log("Conexão encerrada.")
+        return False
+
+    com.sendData(HANDSHAKE_START + total.to_bytes(length=1, byteorder='big') + b'\x01'
+                 + extensionID.to_bytes(length=1, byteorder='big') + HANDSHAKE_END)
+
+    log("Waiting response...")
 
     counter = 0
 
@@ -79,65 +130,98 @@ def sendHandshake(com: enlace) -> bool:
         counter += 1
 
     if counter >= 10:
-        print("Servidor Inativo. Tentar novamente? (S/N)")
+        log("Servidor Inativo. Tentar novamente? (S/N)")
 
         if input().lower() == 's':
-            return sendHandshake(com)
+            return sendHandshake(com, file, total)
 
         com.disable()
-        print("Conexão encerrada.")
+        log("Conexão encerrada.")
         return False
 
-    head, _ = com.getData(12)
+    head = com.getData(10)
 
-    payloadSize = int.from_bytes(head[:2], byteorder='big')
-    totalPackets = int.from_bytes(head[2:7], byteorder='big')
-    packetNumber = int.from_bytes(head[7:], byteorder='big')
+    type = head[0].to_bytes(length=1, byteorder='big')
+    totalPackets = head[3]
+    packetId = head[4]
 
-    end, _ = com.getData(3)
+    end = com.getData(4)
     com.rx.clearBuffer()
 
-    if payloadSize == 0 and totalPackets == 0 and packetNumber == 0 and end == PACKET_END:
-        print("Handshake recebido com sucesso.")
+    if type == SERVER_LIVRE and totalPackets == 1 and packetId == 1 and end == PACKET_END:
+        log("Handshake sent successfully")
         return True
 
-    print("Erro no handshake. Tentar novamente? (S/N)")
+    log("Erro no handshake. Tentar novamente? (S/N)")
 
     if input().lower() == 's':
-        return sendHandshake(com)
+        return sendHandshake(com, file, total)
 
     com.disable()
-    print("Conexão encerrada.")
+    log("Conexão encerrada.")
     return False
 
 
-def sendPacket(packet: bytes, com: enlace, counter: int = 1) -> bool:
+def sendPacket(packet: bytes, com: enlace, counter: int, total: int) -> bool:
+    log(f"Sending packet {counter} of {total}")
+
     com.sendData(packet)  # Envia o pacote
-    time.sleep(0.5)  # 0.5s para o servidor processar o pacote
+    time.sleep(1.5)  # 1.5s para o servidor processar o pacote
 
-    response, _ = com.getData(12)  # Recebe a resposta do servidor
+    timeOutCounter = 0
 
-    payloadSize = int.from_bytes(response[:1], byteorder='big')
+    while com.rx.getBufferLen() < 14 and timeOutCounter < 5:
+        time.sleep(3.5)
 
-    responsePayload = b''
+        log(f"Resending packet {counter} of {total}")
 
-    if payloadSize > 0:
-        responsePayload, _ = com.getData(payloadSize)
+        com.sendData(packet)
+        time.sleep(1.5)
 
-    end, _ = com.getData(3)
+        timeOutCounter += 1
 
-    if payloadSize == 0 and end == PACKET_END:
-        print("Pacote recebido com sucesso.")
+    if timeOutCounter >= 4:
+        log("Timeout")
+        log("Sending timeout packet")
+        com.sendData(TIMEOUT_PACKET)
+
+        log("Ending connection.")
+        com.disable()
+        return None
+
+    response = com.getData(10)  # Recebe a resposta do servidor
+
+    type = response[0].to_bytes(length=1, byteorder='big')
+    total = response[3]
+    packetId = response[4]
+    expected_counter = response[6]
+    last_valid = response[7]
+
+    end = com.getData(4)  # END
+
+    if end != PACKET_END or packetId != 1 or total != 1:
+        log("INVALID PACKET END")
+        com.rx.clearBuffer()
+        return False
+
+    if type == VALIDATION and packetId == counter:
+        log("Packet sent successfully")
         return True
 
-    print(
-        f"Pacote rejeitado pelo servidor error code {int.from_bytes(responsePayload, byteorder='big')}. Tentando novamente...")
+    if type == TIMEOUT:
+        log("Timeout. Ending connection.")
+        com.disable()
+        return None
 
-    if counter < 5:
-        return sendPacket(packet, com, counter+1)
+    if type == ERROR:
+        log(
+            f"Error, expected packet number: {expected_counter}, last valid packet: {last_valid}")
+        return last_valid
+    
+    else:
+        log("Invalid packet")
+        com.rx.clearBuffer()
 
-    print("Tentativas excedidas. Encerrando conexão.")
-    com.disable()
     return False
 
 
@@ -145,20 +229,26 @@ def main():
     try:
         # Ativa comunicacao. Inicia os threads e a comunicação seiral
 
-        com = enlace(SERIAL_PORT_NAME)
-        com.enable()
+        log("Escolha um arquivo para enviar:")
+        file = input()
+        log(f"Arquivo escolhido: {file}")
 
-        if not sendHandshake(com):
+        if not os.path.isfile(file):
+            log("Arquivo não encontrado.")
             return
 
-        print("Data creation start")
-
-        file = "img/coracao.png"
+        com = enlace(SERIAL_PORT_NAME)
+        com.enable()
 
         with open(file, "rb") as f:
             data = f.read()
 
         total = len(data) // 114 + 1
+
+        if not sendHandshake(com, file, total):
+            return
+
+        log("Data creation start")
 
         packets = []
 
@@ -172,57 +262,43 @@ def main():
             packets.append(head + payload + PACKET_END)
 
         head = DATA + b'\x00' + b'\x00' + total.to_bytes(length=1, byteorder='big') + (len(packets) + 1).to_bytes(
-                length=1, byteorder='big') + int(len(payload)).to_bytes(length=1, byteorder='big') + int(0).to_bytes(length=4, byteorder='big')
+            length=1, byteorder='big') + int(len(data)).to_bytes(length=1, byteorder='big') + int(0).to_bytes(length=4, byteorder='big')
 
         packets.append(head + data + PACKET_END)
 
-        print(f"Data processing finished, to be send {len(packets)} packets")
+        log(f"Data processing finished, to be send {len(packets)} packets")
 
-        print("Sending data...")
+        log("Sending data...")
 
         counter = 0
+        total = len(packets)
 
-        while len(packets) > 0:
-            counter += 1
+        while counter < total:
+            result = sendPacket(packets[counter], com, counter+1, total)
 
-            # if counter % 10 == 0:
-            #     print("Sending fake packe with wrong packet number")
-            #     head = int(0).to_bytes(length=2, byteorder='big') + total.to_bytes(
-            #         length=5, byteorder='big') + (counter + 1).to_bytes(length=5, byteorder='big')
+            if result is None:
+                return
+            
+            if type(result) == int:
+                counter = result
 
-            #     sendPacket(head + PACKET_END, com)
-
-            if counter % 5 == 0:
-                print("Sending fake packet with wrong payload length")
-                head = int(1).to_bytes(length=2, byteorder='big') + total.to_bytes(
-                    length=5, byteorder='big') + (counter + 1).to_bytes(length=5, byteorder='big')
-
-                payload = b'\x00\x00\00\x00'
-
-                sendPacket(head + payload + PACKET_END, com)
-
-            if sendPacket(packets.pop(0), com):
-                print(
-                    f"Packet {total - len(packets)}/{total} sended, {com.tx.getStatus()} bytes.")
-            else:
-                print(
-                    f"Error while sending data, {total - len(packets)} packets sended")
-                continue
+            elif result:
+                counter += 1
 
         # A camada enlace possui uma camada inferior, TX possui um método para conhecermos o status da transmissão
         # O método não deve estar fincionando quando usado como abaixo. deve estar retornando zero. Tente entender como esse método funciona e faça-o funcionar.
         # print(f"Payload sended, {com.tx.getStatus()} bytes sended.")
 
-        print("Todos os pacotes foram enviados com sucesso.")
+        log("Todos os pacotes foram enviados com sucesso.")
 
         # Encerra comunicação
-        print("-------------------------")
-        print("Comunicação encerrada")
-        print("-------------------------")
+        log("-------------------------")
+        log("Comunicação encerrada")
+        log("-------------------------")
         com.disable()
 
     except Exception as e:
-        print("Error ->")
+        log("Error ->")
         print(e)
         com.disable()
 
