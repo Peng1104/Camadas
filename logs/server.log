@@ -1,1 +1,60 @@
-[09/03/2023 17:02:23] Waiting for handshake packet...[09/03/2023 17:03:19] Packet received.[09/03/2023 17:03:19] Handshake packet received.[09/03/2023 17:03:19] Handshake packet is valid.[09/03/2023 17:03:21] Packet 1 of 17 received.[09/03/2023 17:03:21] Packet 1 of 17 is valid.[09/03/2023 17:03:21] Sending validation for packet 1 of 17.[09/03/2023 17:03:23] Packet 2 of 17 received.[09/03/2023 17:03:23] Packet 2 of 17 is valid.[09/03/2023 17:03:23] Sending validation for packet 2 of 17.[09/03/2023 17:03:24] Packet 3 of 17 received.[09/03/2023 17:03:24] Packet 3 of 17 is valid.[09/03/2023 17:03:24] Sending validation for packet 3 of 17.[09/03/2023 17:03:26] Packet 4 of 17 received.[09/03/2023 17:03:26] Packet 4 of 17 is valid.[09/03/2023 17:03:26] Sending validation for packet 4 of 17.[09/03/2023 17:03:27] Packet 5 of 17 received.[09/03/2023 17:03:27] Packet 5 of 17 is valid.[09/03/2023 17:03:27] Sending validation for packet 5 of 17.[09/03/2023 17:03:29] Packet 6 of 17 received.[09/03/2023 17:03:29] Packet 6 of 17 is valid.[09/03/2023 17:03:29] Sending validation for packet 6 of 17.[09/03/2023 17:03:31] Packet 7 of 17 received.[09/03/2023 17:03:31] Packet 7 of 17 is valid.[09/03/2023 17:03:31] Sending validation for packet 7 of 17.[09/03/2023 17:03:32] Packet 8 of 17 received.[09/03/2023 17:03:32] Packet 8 of 17 is valid.[09/03/2023 17:03:32] Sending validation for packet 8 of 17.[09/03/2023 17:03:34] Packet 9 of 17 received.[09/03/2023 17:03:34] Packet 9 of 17 is valid.[09/03/2023 17:03:34] Sending validation for packet 9 of 17.[09/03/2023 17:03:36] Packet 10 of 17 received.[09/03/2023 17:03:36] Packet 10 of 17 is valid.[09/03/2023 17:03:36] Sending validation for packet 10 of 17.[09/03/2023 17:03:37] Packet 11 of 17 received.[09/03/2023 17:03:37] Packet 11 of 17 is valid.[09/03/2023 17:03:37] Sending validation for packet 11 of 17.[09/03/2023 17:03:38] Packet 12 of 17 received.[09/03/2023 17:03:38] Packet 12 of 17 is valid.[09/03/2023 17:03:38] Sending validation for packet 12 of 17.[09/03/2023 17:03:40] Packet 13 of 17 received.[09/03/2023 17:03:40] Packet 13 of 17 is valid.[09/03/2023 17:03:40] Sending validation for packet 13 of 17.[09/03/2023 17:03:42] Packet 14 of 17 received.[09/03/2023 17:03:42] Packet 14 of 17 is valid.[09/03/2023 17:03:42] Sending validation for packet 14 of 17.[09/03/2023 17:03:43] Packet 15 of 17 received.[09/03/2023 17:03:43] Packet 15 of 17 is valid.[09/03/2023 17:03:43] Sending validation for packet 15 of 17.[09/03/2023 17:03:45] Packet 16 of 17 received.[09/03/2023 17:03:45] Packet 16 of 17 is valid.[09/03/2023 17:03:45] Sending validation for packet 16 of 17.[09/03/2023 17:03:46] Packet 17 of 17 received.[09/03/2023 17:03:47] Packet 17 of 17 is valid.[09/03/2023 17:03:47] Sending validation for packet 17 of 17.[09/03/2023 17:03:47] Writting file with 1855 bytes.[09/03/2023 17:03:47] File written.[09/03/2023 17:03:47] -------------------------[09/03/2023 17:03:47] Comunication ended.[09/03/2023 17:03:47] -------------------------
+[10/03/2023 11:53:17.149743] Waiting for handshake packet...
+[10/03/2023 11:53:57.675073] Packet received.
+[10/03/2023 11:53:57.736702] Handshake packet received.
+[10/03/2023 11:53:57.782955] Handshake packet is valid.
+[10/03/2023 11:53:59.834736] Packet 1 of 17 received.
+[10/03/2023 11:53:59.896250] Packet 1 of 17 is valid.
+[10/03/2023 11:53:59.937335] Sending validation for packet 1 of 17.
+[10/03/2023 11:54:01.514711] Packet 2 of 17 received.
+[10/03/2023 11:54:01.586472] Packet 2 of 17 is valid.
+[10/03/2023 11:54:01.627493] Sending validation for packet 2 of 17.
+[10/03/2023 11:54:03.189433] Packet 3 of 17 received.
+[10/03/2023 11:54:03.235771] Packet 3 of 17 is valid.
+[10/03/2023 11:54:03.266938] Sending validation for packet 3 of 17.
+[10/03/2023 11:54:04.308318] Packet 4 of 17 received.
+[10/03/2023 11:54:04.369867] Packet 4 of 17 is valid.
+[10/03/2023 11:54:04.436670] Sending validation for packet 4 of 17.
+[10/03/2023 11:54:06.014091] Packet 5 of 17 received.
+[10/03/2023 11:54:06.085888] Packet 5 of 17 is valid.
+[10/03/2023 11:54:06.147332] Sending validation for packet 5 of 17.
+[10/03/2023 11:54:07.714493] Packet 6 of 17 received.
+[10/03/2023 11:54:07.776165] Packet 6 of 17 is valid.
+[10/03/2023 11:54:07.817200] Sending validation for packet 6 of 17.
+[10/03/2023 11:54:09.383971] Packet 7 of 17 received.
+[10/03/2023 11:54:09.455852] Packet 7 of 17 is valid.
+[10/03/2023 11:54:09.496873] Sending validation for packet 7 of 17.
+[10/03/2023 11:54:11.074069] Packet 8 of 17 received.
+[10/03/2023 11:54:11.130794] Packet 8 of 17 is valid.
+[10/03/2023 11:54:11.166881] Sending validation for packet 8 of 17.
+[10/03/2023 11:54:12.238497] Packet 9 of 17 received.
+[10/03/2023 11:54:12.355242] Packet 9 of 17 is valid.
+[10/03/2023 11:54:12.416745] Sending validation for packet 9 of 17.
+[10/03/2023 11:54:13.999112] Packet 10 of 17 received.
+[10/03/2023 11:54:14.040320] Packet 10 of 17 is valid.
+[10/03/2023 11:54:14.096813] Sending validation for packet 10 of 17.
+[10/03/2023 11:54:15.663880] Packet 11 of 17 received.
+[10/03/2023 11:54:15.720301] Packet 11 of 17 is valid.
+[10/03/2023 11:54:15.771613] Sending validation for packet 11 of 17.
+[10/03/2023 11:54:17.328440] Packet 12 of 17 received.
+[10/03/2023 11:54:17.389986] Packet 12 of 17 is valid.
+[10/03/2023 11:54:17.436270] Sending validation for packet 12 of 17.
+[10/03/2023 11:54:19.013485] Packet 13 of 17 received.
+[10/03/2023 11:54:19.075047] Packet 13 of 17 is valid.
+[10/03/2023 11:54:19.121377] Sending validation for packet 13 of 17.
+[10/03/2023 11:54:20.693627] Packet 14 of 17 received.
+[10/03/2023 11:54:20.740110] Packet 14 of 17 is valid.
+[10/03/2023 11:54:20.796614] Sending validation for packet 14 of 17.
+[10/03/2023 11:54:22.367020] Packet 15 of 17 received.
+[10/03/2023 11:54:22.408098] Packet 15 of 17 is valid.
+[10/03/2023 11:54:22.454121] Sending validation for packet 15 of 17.
+[10/03/2023 11:54:23.520770] Packet 16 of 17 received.
+[10/03/2023 11:54:23.577144] Packet 16 of 17 is valid.
+[10/03/2023 11:54:23.633486] Sending validation for packet 16 of 17.
+[10/03/2023 11:54:25.203676] Packet 17 of 17 received.
+[10/03/2023 11:54:25.259952] Packet 17 of 17 is valid.
+[10/03/2023 11:54:25.311078] Sending validation for packet 17 of 17.
+[10/03/2023 11:54:25.352198] Writting file with 1855 bytes.
+[10/03/2023 11:54:25.362727] File written.
+[10/03/2023 11:54:25.408731] -------------------------
+[10/03/2023 11:54:25.454827] Comunication ended.
+[10/03/2023 11:54:25.516341] -------------------------

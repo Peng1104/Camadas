@@ -33,7 +33,7 @@ LOG_FILE = logFile(__file__)
 def log(msg: str) -> None:
     LOG_FILE.log(msg)
 
-HANDSHAKE_START = HANDSHAKE + SERVER_ID + b'\x00'
+HANDSHAKE_START = HANDSHAKE + SERVER_ID.to_bytes(length=1, byteorder='big') + b'\x00'
 HANDSHAKE_END = int(0).to_bytes(length=4, byteorder='big') + PACKET_END
 
 

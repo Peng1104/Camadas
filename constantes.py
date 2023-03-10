@@ -11,7 +11,7 @@ ERROR = b'\x06'         # Type 06 (Error)
 PACKET_END = b'\xAA\xBB\xCC\xDD'
 
 # The server ID
-SERVER_ID = b'\x40'  # Server ID (64)
+SERVER_ID = 64  # Server ID (64)
 
 # The idle packet, sent when the server is idle and has received a handshake
 IDLE_PACKET = SERVER_LIVRE + b'\x00' + b'\x00' + b'\x01' + b'\x01' + \

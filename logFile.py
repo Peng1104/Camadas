@@ -1,4 +1,4 @@
-from os import getcwd, makedirs, remove
+from os import getcwd, makedirs, rename, remove
 from os.path import splitext, basename, isfile
 from datetime import datetime
 from zipfile import ZipFile
@@ -24,7 +24,7 @@ class logFile():
         Logs a message to the console.
         """
 
-        msg = datetime.now().strftime('[%d/%m/%Y.%f %H:%M:%S] ') + msg
+        msg = datetime.now().strftime('[%d/%m/%Y %H:%M:%S.%f] ') + msg
 
         print(msg)
 
@@ -70,7 +70,7 @@ class logFile():
             stored_name = stored_name.replace(
                 '/', '-').replace(':', '.') + ".log"
 
-            remove(self.__file_path)
+            rename(self.__file_path, stored_name)
             ZipFile(self.__zip_path, "a").write(stored_name)
             remove(stored_name)
 
