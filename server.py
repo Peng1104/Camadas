@@ -164,7 +164,7 @@ def main():
                 validation_packet = VALIDATION + b'\x00' + b'\x00' + b'\x01' + b'\x01' + \
                     b'\x00' + b'\x00' + packetCounter.to_bytes(length=1, byteorder='big') + \
                     int(0).to_bytes(length=2, byteorder='big') + PACKET_END
-
+                
                 com.sendData(validation_packet)
 
             else:
