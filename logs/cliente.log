@@ -1,0 +1,46 @@
+[10/03/2023 11:53:27.736253] Escolha um arquivo para enviar...
+[10/03/2023 11:53:57.576190] Arquivo escolhido: img/coracao.png
+[10/03/2023 11:53:57.587346] Sending handshake... for file img/coracao.png
+[10/03/2023 11:53:57.592681] Waiting response...
+[10/03/2023 11:53:59.151688] Handshake sent successfully
+[10/03/2023 11:53:59.213253] Data creation start
+[10/03/2023 11:53:59.259586] Data processing finished, to be send 17 packets
+[10/03/2023 11:53:59.305968] Sending data...
+[10/03/2023 11:53:59.367512] Sending packet 1 of 17
+[10/03/2023 11:54:00.914118] Packet sent successfully
+[10/03/2023 11:54:00.965576] Sending packet 2 of 17
+[10/03/2023 11:54:02.522375] Packet sent successfully
+[10/03/2023 11:54:02.568797] Sending packet 3 of 17
+[10/03/2023 11:54:04.135697] Packet sent successfully
+[10/03/2023 11:54:04.156250] Sending packet 4 of 17
+[10/03/2023 11:54:05.723242] Packet sent successfully
+[10/03/2023 11:54:05.769478] Sending packet 5 of 17
+[10/03/2023 11:54:07.326118] Packet sent successfully
+[10/03/2023 11:54:07.367191] Sending packet 6 of 17
+[10/03/2023 11:54:08.933968] Packet sent successfully
+[10/03/2023 11:54:08.995466] Sending packet 7 of 17
+[10/03/2023 11:54:10.536513] Packet sent successfully
+[10/03/2023 11:54:10.598130] Sending packet 8 of 17
+[10/03/2023 11:54:12.144576] Packet sent successfully
+[10/03/2023 11:54:12.149872] Sending packet 9 of 17
+[10/03/2023 11:54:13.685805] Packet sent successfully
+[10/03/2023 11:54:13.732065] Sending packet 10 of 17
+[10/03/2023 11:54:15.298808] Packet sent successfully
+[10/03/2023 11:54:15.355387] Sending packet 11 of 17
+[10/03/2023 11:54:16.901728] Packet sent successfully
+[10/03/2023 11:54:16.943000] Sending packet 12 of 17
+[10/03/2023 11:54:18.509854] Packet sent successfully
+[10/03/2023 11:54:18.556086] Sending packet 13 of 17
+[10/03/2023 11:54:20.102163] Packet sent successfully
+[10/03/2023 11:54:20.143271] Sending packet 14 of 17
+[10/03/2023 11:54:21.699941] Packet sent successfully
+[10/03/2023 11:54:21.761517] Sending packet 15 of 17
+[10/03/2023 11:54:23.333271] Packet sent successfully
+[10/03/2023 11:54:23.394741] Sending packet 16 of 17
+[10/03/2023 11:54:24.961506] Packet sent successfully
+[10/03/2023 11:54:25.007741] Sending packet 17 of 17
+[10/03/2023 11:54:26.564353] Packet sent successfully
+[10/03/2023 11:54:26.600299] Todos os pacotes foram enviados com sucesso.
+[10/03/2023 11:54:26.615721] -------------------------
+[10/03/2023 11:54:26.656658] Comunicação encerrada
+[10/03/2023 11:54:26.712935] -------------------------
