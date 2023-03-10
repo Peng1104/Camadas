@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 #####################################################
 # Camada Física da Computação
-#Carareto
-#17/02/2018
+# Carareto
+# 17/02/2018
 #  Camada de Enlace
 ####################################################
 
@@ -11,28 +11,29 @@
 import time
 
 # Threads
-import threading
+from threading import Thread
 
 # Class
+
+
 class TX:
- 
+
     def __init__(self, fisica):
-        self.fisica      = fisica
-        self.buffer      = bytes(bytearray())
-        self.transLen    = 0
-        self.empty       = True
+        self.fisica = fisica
+        self.buffer = bytes(bytearray())
+        self.transLen = 0
+        self.empty = True
         self.threadMutex = False
-        self.threadStop  = False
+        self.threadStop = False
+
+        self.thread = Thread(target=self.thread, args=())
+        self.thread.start()
 
     def thread(self):
         while not self.threadStop:
             if self.threadMutex:
-                self.transLen    = self.fisica.write(self.buffer)
+                self.transLen = self.fisica.write(self.buffer)
                 self.threadMutex = False
-
-    def threadStart(self):
-        self.thread = threading.Thread(target=self.thread, args=())
-        self.thread.start()
 
     def threadKill(self):
         self.threadStop = True
@@ -46,7 +47,7 @@ class TX:
     def sendBuffer(self, data):
         self.transLen = 0
         self.buffer = data
-        self.threadMutex  = True
+        self.threadMutex = True
 
     def getBufferLen(self):
         return len(self.buffer)

@@ -7,8 +7,8 @@
 #  Camada de Enlace
 ####################################################
 
-# Importa pacote de tempo
-import time
+# Importa pacote de tempo para usar sleep
+from time import sleep
 
 # Importa formato de dados
 from numpy import asarray
@@ -21,27 +21,24 @@ from enlaceRx import RX
 from enlaceTx import TX
 
 
-class enlace(object):
+class enlace():
 
-    def __init__(self, name):
-        self.fisica = fisica(name)
+    def __init__(self, serial_port_name: str) -> None:
+        self.fisica = fisica(serial_port_name)
         self.rx = RX(self.fisica)
         self.tx = TX(self.fisica)
-        self.connected = False
 
-    def enable(self):
-        self.fisica.open()
-        self.rx.threadStart()
-        self.tx.threadStart()
-
-    def disable(self):
+    def disable(self) -> None:
         self.rx.threadKill()
         self.tx.threadKill()
-        time.sleep(1)
+        sleep(1)
         self.fisica.close()
 
-    def sendData(self, data):
+    def sendData(self, data : bytes) -> None:
         self.tx.sendBuffer(asarray(data))
 
-    def getData(self, size):
-        return self.rx.getNData(size)
+    def clearBuffer(self) -> None:
+        self.rx.clearBuffer()
+
+    def getData(self, amount : int) -> bytes:
+        return self.rx.getNData(amount)

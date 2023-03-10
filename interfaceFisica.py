@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 #####################################################
-#Carareto
-#17/02/2018
+# Carareto
+# 17/02/2018
 ####################################################
 
 # Importa pacote de comunicação serial
@@ -15,28 +15,26 @@ import binascii
 #################################
 # Interface com a camada física #
 #################################
-class fisica(object):
-    def __init__(self, name):
-        self.name        = name
-        self.port        = None
-        self.baudrate    = 115200
-        #self.baudrate    = 9600
-        self.bytesize    = serial.EIGHTBITS
-        self.parity      = serial.PARITY_NONE
-        self.stop        = serial.STOPBITS_ONE
-        self.timeout     = 0.1
-        self.rxRemain    = b""
-
-    def open(self):
-        self.port = serial.Serial(self.name,
-                                  self.baudrate,
-                                  self.bytesize,
-                                  self.parity,
-                                  self.stop,
-                                  self.timeout)
 
 
-    def close(self):
+class fisica():
+
+    def __init__(self, serial_port_name: str) -> None:
+        self.name = serial_port_name
+
+        # Configurações da porta serial
+        baudrate = 115200  # 9600
+        bytesize = serial.EIGHTBITS
+        parity = serial.PARITY_NONE
+        stop = serial.STOPBITS_ONE
+        timeout = 0.1
+
+        self.port = serial.Serial(
+            serial_port_name, baudrate, bytesize, parity, stop, timeout)
+
+        self.rxRemain = b''
+
+    def close(self) -> None:
         self.port.close()
 
     def flush(self):
@@ -44,14 +42,11 @@ class fisica(object):
         self.port.flushOutput()
 
     def encode(self, data):
-        encoded = binascii.hexlify(data)
-        return(encoded)
+        return binascii.hexlify(data)
 
     def decode(self, data):
-        """ RX ASCII data after reception
-        """
-        decoded = binascii.unhexlify(data)
-        return(decoded)
+        # RX ASCII data after reception
+        return binascii.unhexlify(data)
 
     def write(self, txBuffer):
         """ Write data to serial port
@@ -64,9 +59,9 @@ class fisica(object):
         """
         nTx = self.port.write(self.encode(txBuffer))
         self.port.flush()
-        return(nTx/2)
+        return (nTx/2)
 
-    def read(self, nBytes):
+    def read(self, nBytes : int) -> tuple:
         """ Read nBytes from the UART com port
 
         Nem toda a leitura retorna múltiplo de 2
@@ -78,15 +73,15 @@ class fisica(object):
         nValid = (len(rxBufferConcat)//2)*2
         rxBufferValid = rxBufferConcat[0:nValid]
         self.rxRemain = rxBufferConcat[nValid:]
-        try :
+        try:
             """ As vezes acontece erros na decodificacao
             fora do ambiente linux, isso tenta corrigir
             em parte esses erros. Melhorar futuramente."""
             "muitas vezes um flush no inicio resolve!"
             rxBufferDecoded = self.decode(rxBufferValid)
             nRx = len(rxBuffer)
-            return(rxBufferDecoded, nRx)
-        except :
-            print("[ERRO] interfaceFisica, read, decode. buffer : {}".format(rxBufferValid))
-            return(b"", 0)
-
+            return (rxBufferDecoded, nRx)
+        except:
+            print("[ERRO] interfaceFisica, read, decode. buffer : {}".format(
+                rxBufferValid))
+            return (b"", 0)

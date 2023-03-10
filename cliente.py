@@ -1,7 +1,7 @@
 from enlace import enlace
-from datetime import datetime
-from zipfile import ZipFile
-import os
+from logFile import logFile
+from os.path import isfile
+from constantes import *
 import time
 
 # voce deverá descomentar e configurar a porta com através da qual ira fazer comunicaçao
@@ -27,48 +27,11 @@ SERIAL_PORT_NAME = "/dev/ttyACM0"            # Ubuntu (variacao de)
 # Payload 0 - 114 Bytes, the packet data.
 # End of packet 4 Bytes (0xAA 0xBB 0xCC 0xDD)
 
-LOG_FILE = os.getcwd() + "/logs/" + os.path.basename(__file__)
-
-if os.path.exists(LOG_FILE + ".log"):
-    if os.path.isfile(LOG_FILE + ".log"):
-        with open(LOG_FILE + ".log", "r") as file:
-            last_line = file.readlines()[-1]
-
-        fileName = last_line.split('] ')[0][1:].replace(
-            '/', '-').replace(':', '.') + ".log"
-
-        os.rename(LOG_FILE + ".log", fileName)
-        ZipFile(LOG_FILE + ".zip", "a").write(fileName)
-        os.remove(fileName)
-
-LOG_FILE += ".log"
+LOG_FILE = logFile(__file__)
 
 
 def log(msg: str) -> None:
-    msg = datetime.now().strftime('[%d/%m/%Y %H:%M:%S] ') + msg
-
-    print(msg)
-
-    os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
-
-    with open(LOG_FILE, "a", encoding='utf-8') as file:
-        file.write(msg)
-        file.write(msg)
-
-
-PACKET_END = b'\xAA\xBB\xCC\xDD'
-
-HANDSHAKE = b'\x01'     # Type 01 (Handshake)
-SERVER_LIVRE = b'\x02'  # Type 02 (Handshake response)
-DATA = b'\x03'          # Type 03 (Data)
-VALIDATION = b'\x04'    # Type 04 (Validation)
-TIMEOUT = b'\x05'       # Type 05 (Timeout)
-ERROR = b'\x06'         # Type 06 (Error)
-
-SERVER_ID = b'\x40'     # Server ID (64)
-
-TIMEOUT_PACKET = TIMEOUT + b'\x00' + b'\x00' + b'\x01' + b'\x01' + \
-    int(0).to_bytes(length=5, byteorder='big') + PACKET_END
+    LOG_FILE.log(msg)
 
 HANDSHAKE_START = HANDSHAKE + SERVER_ID + b'\x00'
 HANDSHAKE_END = int(0).to_bytes(length=4, byteorder='big') + PACKET_END
@@ -217,7 +180,7 @@ def sendPacket(packet: bytes, com: enlace, counter: int, total: int) -> bool:
         log(
             f"Error, expected packet number: {expected_counter}, last valid packet: {last_valid}")
         return last_valid
-    
+
     else:
         log("Invalid packet")
         com.rx.clearBuffer()
@@ -229,16 +192,15 @@ def main():
     try:
         # Ativa comunicacao. Inicia os threads e a comunicação seiral
 
-        log("Escolha um arquivo para enviar:")
-        file = input()
+        log("Escolha um arquivo para enviar...")
+        file = input("Arquivo: ")
         log(f"Arquivo escolhido: {file}")
 
-        if not os.path.isfile(file):
+        if not isfile(file):
             log("Arquivo não encontrado.")
             return
 
         com = enlace(SERIAL_PORT_NAME)
-        com.enable()
 
         with open(file, "rb") as f:
             data = f.read()
@@ -278,7 +240,7 @@ def main():
 
             if result is None:
                 return
-            
+
             if type(result) == int:
                 counter = result
 

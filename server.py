@@ -1,8 +1,7 @@
 from enlace import enlace
-from datetime import datetime
-from zipfile import ZipFile
+from logFile import logFile
+from constantes import *
 import time
-import os
 
 # voce deverá descomentar e configurar a porta com através da qual ira fazer comunicaçao
 #   para saber a sua porta, execute no terminal :
@@ -14,32 +13,11 @@ SERIAL_PORT_NAME = "/dev/ttyACM1"            # Ubuntu (variacao de)
 # SERIAL_PORT_NAME = "/dev/tty.usbmodem1411"   # Mac    (variacao de)
 # SERIAL_PORT_NAME = "COM5"                    # Windows(variacao de)
 
-LOG_FILE = os.getcwd() + "/logs/" + os.path.splitext(os.path.basename(__file__))[0]
-
-if os.path.exists(LOG_FILE + ".log"):
-    if os.path.isfile(LOG_FILE + ".log"):
-        with open(LOG_FILE + ".log", "r") as file:
-            last_line = file.readlines()[-1]
-
-        fileName = last_line.split('] ')[0][1:].replace(
-            '/', '-').replace(':', '.') + ".log"
-
-        os.rename(LOG_FILE + ".log", fileName)
-        ZipFile(LOG_FILE + ".zip", "a").write(fileName)
-        os.remove(fileName)
-
-LOG_FILE += ".log"
+LOG_FILE = logFile(__file__)
 
 
 def log(msg: str) -> None:
-    msg = datetime.now().strftime('[%d/%m/%Y %H:%M:%S] ') + msg
-
-    print(msg)
-
-    os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
-
-    with open(LOG_FILE, "a", encoding='utf-8') as file:
-        file.write(msg)
+    LOG_FILE.log(msg)
 
 # HEAD
 # h0 – Tipo de mensagem
@@ -53,24 +31,6 @@ def log(msg: str) -> None:
 # h8h9 – CRC (Por ora deixe em branco. Fará parte do projeto 5).
 # Payload 0 - 114 Bytes, the packet data.
 # End of packet 4 Bytes (0xAA 0xBB 0xCC 0xDD)
-
-
-PACKET_END = b'\xAA\xBB\xCC\xDD'
-
-HANDSHAKE = b'\x01'     # Type 01 (Handshake)
-SERVER_LIVRE = b'\x02'  # Type 02 (Handshake response)
-DATA = b'\x03'          # Type 03 (Data)
-VALIDATION = b'\x04'    # Type 04 (Validation)
-TIMEOUT = b'\x05'       # Type 05 (Timeout)
-ERROR = b'\x06'         # Type 06 (Error)
-
-SERVER_ID = 64          # Server ID (64)
-
-IDLE_PACKET = SERVER_LIVRE + b'\x00' + b'\x00' + b'\x01' + b'\x01' + \
-    int(0).to_bytes(length=5, byteorder='big') + PACKET_END
-
-TIMEOUT_PACKET = TIMEOUT + b'\x00' + b'\x00' + b'\x01' + b'\x01' + \
-    int(0).to_bytes(length=5, byteorder='big') + PACKET_END
 
 
 def handshake_confirmation(com: enlace) -> tuple[int, int]:
@@ -153,7 +113,6 @@ def main():
     try:
         # Ativa comunicacao. Inicia os threads e a comunicação seiral
         com = enlace(SERIAL_PORT_NAME)
-        com.enable()
 
         archiveId = -1
 
@@ -172,7 +131,8 @@ def main():
                 timer += 0.5
 
                 if timer % 2 == 0 and timer < 20:
-                    log(f"Reenviando pacote de confirmação para o pacote {packetCounter}")
+                    log(
+                        f"Reenviando pacote de confirmação para o pacote {packetCounter}")
 
                     validation_packet = VALIDATION + b'\x00' + b'\x00' + b'\x01' + b'\x01' + \
                         b'\x00' + b'\x00' + packetCounter.to_bytes(length=1, byteorder='big') + \
@@ -255,6 +215,7 @@ def main():
     except Exception as e:
         print("Error ->", e)
         com.disable()
+
 
     # so roda o main quando for executado do terminal ... se for chamado dentro de outro modulo nao roda
 if __name__ == "__main__":
