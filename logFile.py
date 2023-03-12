@@ -1,5 +1,5 @@
 from os import getcwd, makedirs, rename, remove
-from os.path import splitext, basename, isfile
+from os.path import splitext, basename, isfile, exists
 from datetime import datetime
 from zipfile import ZipFile
 
@@ -8,8 +8,9 @@ BASE_DIRECTORY = getcwd() + "/logs/"
 
 class logFile():
 
-    def __init__(self, file_path: str) -> None:
-        file_name = splitext(basename(file_path))[0]
+    def __init__(self, file_name: str, extract: bool = True) -> None:
+        if extract:
+            file_name = splitext(basename(file_name))[0]
 
         self.__file_path = BASE_DIRECTORY + file_name + ".log"
         self.__zip_path = BASE_DIRECTORY + file_name + ".zip"
@@ -76,4 +77,4 @@ class logFile():
 
             return True
 
-        return False
+        return not exists(self.__file_path)

@@ -33,7 +33,10 @@ LOG_FILE = logFile(__file__)
 def log(msg: str) -> None:
     LOG_FILE.log(msg)
 
-HANDSHAKE_START = HANDSHAKE + SERVER_ID.to_bytes(length=1, byteorder='big') + b'\x00'
+
+HANDSHAKE_START = HANDSHAKE + \
+    SERVER_ID.to_bytes(length=1, byteorder='big') + b'\x00' + b'\x01' + b'\x01'
+
 HANDSHAKE_END = int(0).to_bytes(length=4, byteorder='big') + PACKET_END
 
 
@@ -63,127 +66,97 @@ def get_extension_id(extension: str) -> int:
             return -1
 
 
-def sendHandshake(com: enlace, file: str, total: int) -> bool:
-    log(f"Sending handshake... for file {file}")
+def sendHandshake(com: enlace, file_path: str) -> bool:
+    com.log(f"Sending handshake... for file {file_path}")
 
-    extension = file.split('.')[-1]
+    extension = file_path.split('.')[-1]
 
     extensionID = get_extension_id(extension)
 
     if extensionID == -1:
-        log(f"Error: Invalid file extension, {extension}")
-        log("Tentar novamente? (S/N)")
+        com.log(f"Error: Invalid file extension, {extension}")
 
-        if input().lower() == 's':
-            return sendHandshake(com, file, total)
-
-        com.disable()
-        log("Conexão encerrada.")
-        return False
-
-    com.sendData(HANDSHAKE_START + total.to_bytes(length=1, byteorder='big') + b'\x01'
-                 + extensionID.to_bytes(length=1, byteorder='big') + HANDSHAKE_END)
-
-    log("Waiting response...")
-
-    counter = 0
-
-    while com.rx.getIsEmpty() and counter < 11:
-        time.sleep(0.5)
-        counter += 1
-
-    if counter >= 10:
-        log("Servidor Inativo. Tentar novamente? (S/N)")
-
-        if input().lower() == 's':
-            return sendHandshake(com, file, total)
+        if input("Tentar novamente? (S/N)").lower() == 's':
+            return sendHandshake(com, file_path)
 
         com.disable()
         log("Conexão encerrada.")
         return False
 
-    head = com.getData(10)
+    com.sendData(HANDSHAKE_START +
+                 extensionID.to_bytes(length=1, byteorder='big') + HANDSHAKE_END)
+
+    com.log("Waiting response...")
+
+    head, payload, end = com.readPacket()
+
+    if head is None:
+        com.log("Server is not responding. Try again? (S/N)")
+
+        if input().lower() == 's':
+            return sendHandshake(com, file_path)
+
+        com.disable()
+        return False
 
     type = head[0].to_bytes(length=1, byteorder='big')
     totalPackets = head[3]
     packetId = head[4]
 
-    end = com.getData(4)
-    com.rx.clearBuffer()
+    com.clearBuffer()
 
     if type == SERVER_LIVRE and totalPackets == 1 and packetId == 1 and end == PACKET_END:
-        log("Handshake sent successfully")
+        com.log("Server idle, ready to receive file.")
         return True
 
-    log("Erro no handshake. Tentar novamente? (S/N)")
+    com.log("Erro no handshake. Tentar novamente? (S/N)")
 
     if input().lower() == 's':
-        return sendHandshake(com, file, total)
+        return sendHandshake(com, file_path)
 
     com.disable()
-    log("Conexão encerrada.")
     return False
 
 
-def sendPacket(packet: bytes, com: enlace, counter: int, total: int) -> bool:
-    log(f"Sending packet {counter} of {total}")
+def sendPacket(packet: bytes, com: enlace, counter: int, total: int):
+    com.log(f"Sending packet {counter} of {total}")
 
     com.sendData(packet)  # Envia o pacote
     time.sleep(1.5)  # 1.5s para o servidor processar o pacote
 
-    timeOutCounter = 0
+    head, payload, end = com.readPacket()
 
-    while com.rx.getBufferLen() < 14 and timeOutCounter < 5:
-        time.sleep(3.5)
-
-        log(f"Resending packet {counter} of {total}")
-
-        com.sendData(packet)
-        time.sleep(1.5)
-
-        timeOutCounter += 1
-
-    if timeOutCounter >= 4:
-        log("Timeout")
-        log("Sending timeout packet")
-        com.sendData(TIMEOUT_PACKET)
-
-        log("Ending connection.")
-        com.disable()
+    if head is None:
         return None
 
-    response = com.getData(10)  # Recebe a resposta do servidor
-
-    type = response[0].to_bytes(length=1, byteorder='big')
-    total = response[3]
-    packetId = response[4]
-    expected_counter = response[6]
-    last_valid = response[7]
-
-    end = com.getData(4)  # END
+    type = head[0].to_bytes(length=1, byteorder='big')
+    total = head[3]
+    packetId = head[4]
+    expected_counter = head[6]
+    last_valid = head[7]
 
     if end != PACKET_END or packetId != 1 or total != 1:
-        log("INVALID PACKET END")
-        com.rx.clearBuffer()
+        com.log("INVALID PACKET END")
+        com.clearBuffer()
         return False
 
     if type == VALIDATION and last_valid == counter:
-        log("Packet sent successfully")
+        com.log(f"Packet {counter} sent successfully")
         return True
 
     if type == TIMEOUT:
-        log("Timeout. Ending connection.")
+        com.log("Receiving timeout from server.")
         com.disable()
         return None
 
     if type == ERROR:
-        log(
+        com.log(
             f"Error, expected packet number: {expected_counter}, last valid packet: {last_valid}")
         return last_valid
 
     else:
-        log("Invalid packet")
-        com.rx.clearBuffer()
+        com.log("Invalid packet")
+        com.clearBuffer()
 
     return False
 
@@ -200,7 +173,7 @@ def main():
             log("Arquivo não encontrado.")
             return
 
-        com = enlace(SERIAL_PORT_NAME)
+        com = enlace(LOG_FILE, SERIAL_PORT_NAME)
 
         with open(file, "rb") as f:
             data = f.read()
@@ -267,4 +240,3 @@ def main():
     # so roda o main quando for executado do terminal ... se for chamado dentro de outro modulo nao roda
 if __name__ == "__main__":
     main()
-    

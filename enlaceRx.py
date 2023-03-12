@@ -65,7 +65,7 @@ class RX(object):
         self.threadResume()
         return b
 
-    def getNData(self, amount : int) -> bytes:
+    def getNData(self, amount: int) -> bytes:
         while self.getBufferLen() < amount:
             time.sleep(0.05)
         return self.getBuffer(amount)
