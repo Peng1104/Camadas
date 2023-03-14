@@ -29,6 +29,7 @@ from logFile import logFile
 class enlace():
 
     def __init__(self, log_file: logFile, serial_port_name: str) -> None:
+        self.__enabled = False
         self.__log_file = log_file
 
         self.log("Iniciando interface fisica...")
@@ -42,17 +43,26 @@ class enlace():
 
         self.__last_packet = None
         self.clearBuffer()
+        self.__enabled = True
 
     def log(self, message: str) -> None:
         self.__log_file.log(message)
+    
+    def isEnabled(self) -> bool:
+        return self.__enabled
 
     def disable(self) -> None:
+        self.__enabled = False
         self.log("Desabilitando a comunicação...")
 
-        self.rx.threadKill()
-        self.tx.threadKill()
-        sleep(1)  # Espera a thread morrer
-        self.fisica.close()
+        try:
+            self.rx.threadKill()
+            self.tx.threadKill()
+            sleep(1)  # Espera a thread morrer
+            self.fisica.close()
+        
+        except Exception as e:
+            self.log(f"An error as occurred while disabling the communication.\n{e}")
 
     def clearBuffer(self) -> None:
         self.rx.clearBuffer()

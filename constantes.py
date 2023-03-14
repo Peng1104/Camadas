@@ -1,3 +1,9 @@
+# The time to wait between buffer checks, in seconds
+CHECK_DELAY = 0.5
+
+# The server ID
+SERVER_ID = 64  # 0x40
+
 # HEAD
 # h0 – Tipo de mensagem
 # h1 – Se tipo for handshake: número do servidor, se não 0
@@ -10,27 +16,16 @@
 # h6 – Pacote solicitado para recomeço quando a erro no envio
 # h7 – Ùltimo pacote recebido com sucesso
 # h8h9 – CRC (Por ora deixe em branco. Fará parte do projeto 5).
-# Payload 0 - 114 Bytes, the packet data.
-# End of packet 4 Bytes (0xAA 0xBB 0xCC 0xDD)
 
-# The time to wait between buffer checks, in seconds
-CHECK_DELAY = 0.5
+HEAD_SIZE = 10
 
-# The server ID
-SERVER_ID = 64  # Server ID (64)
-
-# Packet Sructure
+MAX_PAYLOAD_SIZE = 114
 
 # The packet end
 PACKET_END = b'\xAA\xBB\xCC\xDD'
 
-# Header size
-HEAD_SIZE = 10
-
-# The packet end size
 END_SIZE = len(PACKET_END)
 
-# The minimum packet size
 MIN_PACKET_SIZE = HEAD_SIZE + END_SIZE
 
 # The packets types
@@ -45,9 +40,25 @@ ERROR = b'\x06'         # Type 06 (Error)
 # Fixed packets
 
 # The idle packet, send when the server is idle and has received a handshake
-IDLE_PACKET = SERVER_LIVRE + b'\x00' + b'\x00' + b'\x01' + b'\x01' + \
-    int(0).to_bytes(length=5, byteorder='big') + PACKET_END
+IDLE_PACKET = SERVER_LIVRE + \
+    bytes(2) + b'\x01' + b'\x01' + bytes(5) + PACKET_END
 
 # The timeout packet, send when the last received packet was over 20 seconds ago
-TIMEOUT_PACKET = TIMEOUT + b'\x00' + b'\x00' + b'\x01' + b'\x01' + \
-    int(0).to_bytes(length=5, byteorder='big') + PACKET_END
+TIMEOUT_PACKET = TIMEOUT + bytes(2) + b'\x01' + b'\x01' + bytes(5) + PACKET_END
+
+# Extentions to archiveID mapping
+__EXTENTIONS = {".txt": 1, ".png": 2, ".jpg": 3, ".zip": 4, ".mp3": 5,
+                ".mp4": 6, ".pdf": 7, ".docx": 8, ".pptx": 9, ".xlsx": 10}
+
+
+def get_archiveId(extention: str) -> int:
+    return __EXTENTIONS[extention]
+
+
+def get_extention(archiveId: int) -> str:
+    result = [k for k, v in __EXTENTIONS.items() if v == archiveId]
+
+    if len(result) == 0:
+        return None
+
+    return result[0]
