@@ -101,7 +101,7 @@ class server():
                 payload = self.next_data_packet(next, total)
 
                 # TIMEOUT
-                if type(payload) == int:
+                if payload is int:
                     return
 
                 if payload is None:
@@ -112,6 +112,8 @@ class server():
                     self.send_validation(next)
                     next = next + 1
 
+            # Send validation for last packet
+            self.send_validation(next)
             self.log("All packets received.")
             self.write_archive(archiveId, data)
 
@@ -122,11 +124,11 @@ class server():
     def write_archive(self, archiveId: int, data: bytes) -> None:
         self.log(f"Writting file with {len(data)} bytes.")
 
-        extention = None
+        extention = get_extention(archiveId)
 
-        self.log(f"Writing archive {archiveId}...")
+        self.log(f"Writing data/recived.{extention}...")
 
-        with open("data/recived" + extention, "wb") as file:
+        with open("data/recived." + extention, "wb") as file:
             file.write(data)
 
         self.log("File written.")

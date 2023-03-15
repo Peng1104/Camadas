@@ -70,7 +70,12 @@ class enlace():
     def sendData(self, data: bytes) -> None:
         if data is not None:
             self.log(f"Sending {len(data)} bytes...")
-            self.log(f"Data: {data}")
+
+            if data[0].to_bytes(length=1, byteorder='big') != DATA:
+                self.log(f"Data: {data}")
+            
+            else:
+                self.log(f"Data: {data[:HEAD_SIZE]} ... {data[-END_SIZE:]}")
 
             self.__last_packet = data
             self.tx.sendBuffer(asarray(data))

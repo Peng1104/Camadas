@@ -47,8 +47,8 @@ IDLE_PACKET = SERVER_LIVRE + \
 TIMEOUT_PACKET = TIMEOUT + bytes(2) + b'\x01' + b'\x01' + bytes(5) + PACKET_END
 
 # Extentions to archiveID mapping
-__EXTENTIONS = {".txt": 1, ".png": 2, ".jpg": 3, ".zip": 4, ".mp3": 5,
-                ".mp4": 6, ".pdf": 7, ".docx": 8, ".pptx": 9, ".xlsx": 10}
+__EXTENTIONS = {"txt": 1, "png": 2, "jpg": 3, "zip": 4, "mp3": 5,
+                "mp4": 6, "pdf": 7, "docx": 8, "pptx": 9, "xlsx": 10}
 
 
 def get_archiveId(extention: str) -> int:

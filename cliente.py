@@ -88,7 +88,7 @@ def sendHandshake(com: enlace, file_path: str) -> bool:
 
     com.log("Waiting response...")
 
-    head, payload, end = com.readPacket()
+    head, _, end = com.readPacket(False)
 
     if head is None:
         com.log("Server is not responding. Try again? (S/N)")
@@ -98,6 +98,8 @@ def sendHandshake(com: enlace, file_path: str) -> bool:
 
         com.disable()
         return False
+    
+    com.log("Debug")
 
     type = head[0].to_bytes(length=1, byteorder='big')
     totalPackets = head[3]
@@ -180,7 +182,7 @@ def main():
 
         total = len(data) // 114 + 1
 
-        if not sendHandshake(com, file, total):
+        if not sendHandshake(com, file):
             return
 
         log("Data creation start")
