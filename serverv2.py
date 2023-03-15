@@ -84,11 +84,11 @@ class server():
             return self.recive_data(archiveId)
 
         type = head[0].to_bytes(length=1, byteorder='big')
-        next = head[4]
+        packetId = head[4]
         last = head[7]
 
         # Validade packet
-        if type == DATA and next == 1 and last == 0:
+        if type == DATA and packetId == 1 and last == 0:
             self.log("First data packet received.")
             self.send_validation(1)
 
@@ -110,7 +110,7 @@ class server():
                 else:
                     data += payload
                     self.send_validation(next)
-                    next = next + 1
+                    next += 1
 
             # Send validation for last packet
             self.send_validation(next)
