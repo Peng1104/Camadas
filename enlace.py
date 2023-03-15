@@ -47,7 +47,7 @@ class enlace():
 
     def log(self, message: str) -> None:
         self.__log_file.log(message)
-    
+
     def isEnabled(self) -> bool:
         return self.__enabled
 
@@ -60,9 +60,10 @@ class enlace():
             self.tx.threadKill()
             sleep(1)  # Espera a thread morrer
             self.fisica.close()
-        
+
         except Exception as e:
-            self.log(f"An error as occurred while disabling the communication.\n{e}")
+            self.log(
+                f"An error as occurred while disabling the communication.\n{e}")
 
     def clearBuffer(self) -> None:
         self.rx.clearBuffer()
@@ -71,11 +72,11 @@ class enlace():
         if data is not None:
             self.log(f"Sending {len(data)} bytes...")
 
-            if data[0].to_bytes(length=1, byteorder='big') != DATA:
-                self.log(f"Data: {data}")
-            
-            else:
+            if data[0].to_bytes(length=1, byteorder='big') == DATA:
                 self.log(f"Data: {data[:HEAD_SIZE]} ... {data[-END_SIZE:]}")
+
+            else:
+                self.log(f"Data: {data}")
 
             self.__last_packet = data
             self.tx.sendBuffer(asarray(data))
