@@ -40,40 +40,14 @@ HANDSHAKE_START = HANDSHAKE + \
 HANDSHAKE_END = int(0).to_bytes(length=4, byteorder='big') + PACKET_END
 
 
-def get_extension_id(extension: str) -> int:
-    match extension:
-        case "txt":
-            return 1
-        case "png":
-            return 2
-        case "jpg":
-            return 3
-        case "zip":
-            return 4
-        case "mp3":
-            return 5
-        case "mp4":
-            return 6
-        case "pdf":
-            return 7
-        case "docx":
-            return 8
-        case "pptx":
-            return 9
-        case "xlsx":
-            return 10
-        case _:
-            return -1
-
-
 def sendHandshake(com: enlace, file_path: str) -> bool:
     com.log(f"Sending handshake... for file {file_path}")
 
     extension = file_path.split('.')[-1]
 
-    extensionID = get_extension_id(extension)
+    archiveId = get_archiveId(extension)
 
-    if extensionID == -1:
+    if archiveId == -1:
         com.log(f"Error: Invalid file extension, {extension}")
 
         if input("Tentar novamente? (S/N)").lower() == 's':
@@ -84,7 +58,7 @@ def sendHandshake(com: enlace, file_path: str) -> bool:
         return False
 
     com.sendData(HANDSHAKE_START +
-                 extensionID.to_bytes(length=1, byteorder='big') + HANDSHAKE_END)
+                 archiveId.to_bytes(length=1, byteorder='big') + HANDSHAKE_END)
 
     com.log("Waiting response...")
 
