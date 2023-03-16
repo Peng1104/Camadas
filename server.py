@@ -61,7 +61,7 @@ def handshake_confirmation(com: enlace) -> tuple[int, int]:
 
             # Send handshake confirmation
             time.sleep(1)
-            com.sendData(IDLE_PACKET)
+            com.sendPacket(IDLE_PACKET)
 
             return archiveId, totalPackets
         else:
@@ -138,12 +138,12 @@ def main():
                         b'\x00' + b'\x00' + packetCounter.to_bytes(length=1, byteorder='big') + \
                         int(0).to_bytes(length=2, byteorder='big') + PACKET_END
 
-                    com.sendData(validation_packet)
+                    com.sendPacket(validation_packet)
 
             if timer >= 20:
                 log("Time out, sending timeout packet.")
 
-                com.sendData(TIMEOUT_PACKET)
+                com.sendPacket(TIMEOUT_PACKET)
 
                 com.disable()
                 print("Conexão encerrada.")
@@ -165,7 +165,7 @@ def main():
                     b'\x00' + b'\x00' + packetCounter.to_bytes(length=1, byteorder='big') + \
                     int(0).to_bytes(length=2, byteorder='big') + PACKET_END
                 
-                com.sendData(validation_packet)
+                com.sendPacket(validation_packet)
 
             else:
                 log(f"Sending error for packet {packetCounter + 1} of {totalPackets}.")
@@ -175,7 +175,7 @@ def main():
                     packetCounter.to_bytes(length=1, byteorder='big') + \
                     int(0).to_bytes(length=2, byteorder='big') + PACKET_END
 
-                com.sendData(error_packet)
+                com.sendPacket(error_packet)
 
         log(f"Writting file with {len(data)} bytes.")
 

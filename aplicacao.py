@@ -36,7 +36,7 @@ def main():
         # Byte de sacrifício
 
         time.sleep(.2)
-        com1.sendData(b'00')
+        com1.sendPacket(b'00')
         time.sleep(1)
 
         print("esperando 1 byte de sacrifício")
@@ -79,7 +79,7 @@ def main():
 
         print("Sending header...")
         
-        com1.sendData(header)
+        com1.sendPacket(header)
 
         time.sleep(1)
 
@@ -106,7 +106,7 @@ def main():
         print("Sending data...")
 
         # as array apenas como boa pratica para casos de ter uma outra forma de dados
-        com1.sendData(np.asarray(payload))
+        com1.sendPacket(np.asarray(payload))
 
         print("Data sent")
 

@@ -57,12 +57,12 @@ def sendHandshake(com: enlace, file_path: str) -> bool:
         log("Conexão encerrada.")
         return False
 
-    com.sendData(HANDSHAKE_START +
+    com.sendPacket(HANDSHAKE_START +
                  archiveId.to_bytes(length=1, byteorder='big') + HANDSHAKE_END)
 
     com.log("Waiting response...")
 
-    head, _, end = com.readPacket(False)
+    head, _, end = com.recivePacket(False)
 
     if head is None:
         com.log("Server is not responding. Try again? (S/N)")
@@ -97,10 +97,10 @@ def sendHandshake(com: enlace, file_path: str) -> bool:
 def sendPacket(packet: bytes, com: enlace, counter: int, total: int):
     com.log(f"Sending packet {counter} of {total}")
 
-    com.sendData(packet)  # Envia o pacote
+    com.sendPacket(packet)  # Envia o pacote
     time.sleep(1.5)  # 1.5s para o servidor processar o pacote
 
-    head, payload, end = com.readPacket()
+    head, _, end = com.recivePacket()
 
     if head is None:
         return None
@@ -188,6 +188,10 @@ def main():
             result = sendPacket(packets[counter], com, counter+1, total)
 
             if result is None:
+                log("-------------------------")
+                log("Comunicação encerrada")
+                log("-------------------------")
+                com.disable()
                 return
 
             if type(result) == int:

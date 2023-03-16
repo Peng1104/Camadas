@@ -68,50 +68,53 @@ class enlace():
     def clearBuffer(self) -> None:
         self.rx.clearBuffer()
 
-    def sendData(self, data: bytes) -> None:
-        if data is not None:
-            self.log(f"Sending {len(data)} bytes...")
+    def sendPacket(self, packet: bytes) -> None:
+        self.__last_packet = packet
+        
+        if packet is None:
+            return
 
-            if data[0].to_bytes(length=1, byteorder='big') == DATA:
-                self.log(f"Data: {data[:HEAD_SIZE]} ... {data[-END_SIZE:]}")
+        self.log(f"Sending {len(packet)} bytes...")
 
-            else:
-                self.log(f"Data: {data}")
+        if packet[0].to_bytes(length=1, byteorder='big') == DATA:
+            self.log(f"Data: {packet[:HEAD_SIZE]} ... {packet[-END_SIZE:]}")
 
-            self.__last_packet = data
-            self.tx.sendBuffer(asarray(data))
         else:
-            self.__last_packet = None
+            self.log(f"Data: {packet}")
+        
+        self.tx.sendBuffer(asarray(packet))
 
-    def readPacket(self, retry: bool = True) -> tuple[bytes, bytes, bytes]:
-        time_out_time = 0
+    def recivePacket(self, retry: bool = True) -> tuple[bytes, bytes, bytes]:
+        timer = 0
 
         while self.rx.getBufferLen() < MIN_PACKET_SIZE:
             sleep(CHECK_DELAY)
-            time_out_time += CHECK_DELAY
+            timer += CHECK_DELAY
 
-            if time_out_time >= 20:
+            if timer >= TIMEOUT_TIME:
                 if retry:
                     self.log("Sending timeout packet...")
-                    self.sendData(TIMEOUT_PACKET)
+                    self.sendPacket(TIMEOUT_PACKET)
                 return None, None, None
 
-            if retry and time_out_time % 5 == 0:
+            if retry and timer % RETRY_TIME == 0:
                 self.log(
-                    f"Sending last packet again ({time_out_time // 5})...")
-                self.sendData(self.__last_packet)
+                    f"Sending last packet again ({timer // RETRY_TIME})...")
+                self.sendPacket(self.__last_packet)
 
-        head = self.rx.getNData(HEAD_SIZE)
+        head = self.rx.getBuffer(HEAD_SIZE)
         payload = None
 
         if head[0].to_bytes(length=1, byteorder='big') == DATA:
-            payload = self.rx.getNData(head[5])
+            payloadSize = head[5]
 
-        end = self.rx.getNData(END_SIZE)
+            # Check if the payload is complete, if not, clear the buffer
+            if self.rx.getBufferLen() < payloadSize + END_SIZE:
+                self.clearBuffer()
+                return head, None, None
+            else:
+                payload = self.rx.getBuffer(payloadSize)
+
+        end = self.rx.getBuffer(END_SIZE)
 
         return head, payload, end
-
-    def getData(self, amount: int) -> bytes:
-        while self.rx.getBufferLen() < amount:
-            sleep(0.5)
-        return self.rx.getNData(amount)

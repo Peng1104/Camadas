@@ -25,7 +25,7 @@ class server():
     def idle(self) -> None:
         self.log("Waiting for handshake packet...")
 
-        handshake, _, end = self.com.readPacket(False)
+        handshake, _, end = self.com.recivePacket(False)
 
         # No handshake received
         if handshake is None:
@@ -62,7 +62,7 @@ class server():
 
             sleep(1)
 
-            self.com.sendData(IDLE_PACKET)
+            self.com.sendPacket(IDLE_PACKET)
             self.recive_data(archiveId)
 
         else:
@@ -72,7 +72,7 @@ class server():
     def recive_data(self, archiveId: int) -> None:
         self.log(f"Waiting for first data packet for {archiveId}...")
 
-        head, payload, end = self.com.readPacket()
+        head, payload, end = self.com.recivePacket()
 
         # TIMEOUT
         if head is None:
@@ -98,15 +98,14 @@ class server():
             next = 2
 
             while next < total:
-                payload = self.next_data_packet(next, total)
+                timeout, payload = self.next_data_packet(next, total)
 
-                # TIMEOUT
-                if payload is int:
+                if timeout:
                     return
 
                 if payload is None:
                     self.send_error(next, next - 1)
-
+                
                 else:
                     data += payload
                     self.send_validation(next)
@@ -138,49 +137,49 @@ class server():
         self.log("Comunication ended.")
         self.log("-------------------------")
 
-    def next_data_packet(self, next: int, total: int) -> bytes:
+    def next_data_packet(self, next: int, total: int) -> tuple[bool, bytes]:
         self.log(f"Waiting for packet {next} of {total}...")
 
-        head, payload, end = self.com.readPacket()
+        head, payload, end = self.com.recivePacket()
 
         # TIMEOUT
         if head is None:
-            return -1
+            return True, None
 
         # Corrupted packet
         if end != PACKET_END:
             self.log(
                 f"Packet {next} is not valid, end of packet is not valid.")
-            return None
+            return False, None
 
         type = head[0].to_bytes(length=1, byteorder='big')
 
         if type != DATA:
             self.log(f"Invalid packet {type} recived, ignoring...")
-            return None
+            return False, None
 
         packet_total = head[3]
 
         if packet_total != total:
             self.log(f"Invalid packet total {packet_total}, expected {total}")
-            return None
+            return False, None
 
         packetId = head[4]
 
         if packetId != next:
             self.log(f"Invalid packet id {packetId}, expected {next}")
-            return None
+            return False, None
 
         self.log(f"Packet {packetId} of {total} received.")
 
-        return payload
+        return False, payload
 
     def send_validation(self, packetId: int) -> None:
         self.log(f"Sending validation packet for packet {packetId}...")
 
-        self.com.sendData(VALIDATION + b'\x00' + b'\x00' + b'\x01' + b'\x01' + b'\x00' + b'\x00' +
-                          packetId.to_bytes(length=1, byteorder='big') +
-                          int(0).to_bytes(length=2, byteorder='big') + PACKET_END)
+        self.com.sendPacket(VALIDATION + b'\x00' + b'\x00' + b'\x01' + b'\x01' + b'\x00' + b'\x00' +
+                            packetId.to_bytes(length=1, byteorder='big') +
+                            int(0).to_bytes(length=2, byteorder='big') + PACKET_END)
 
     def send_error(self, packetId: int, last: int) -> None:
         self.com.clearBuffer()
@@ -188,10 +187,10 @@ class server():
         self.log(
             f"Sending error packet for packet {packetId}, last: {last}...")
 
-        self.com.sendData(ERROR + b'\x00' + b'\x00' + b'\x01' + b'\x01' + b'\x00' +
-                          packetId.to_bytes(length=1, byteorder='big') +
-                          last.to_bytes(length=1, byteorder='big') +
-                          int(0).to_bytes(length=2, byteorder='big') + PACKET_END)
+        self.com.sendPacket(ERROR + b'\x00' + b'\x00' + b'\x01' + b'\x01' + b'\x00' +
+                            packetId.to_bytes(length=1, byteorder='big') +
+                            last.to_bytes(length=1, byteorder='big') +
+                            int(0).to_bytes(length=2, byteorder='big') + PACKET_END)
 
     def end(self) -> None:
         self.com.disable()

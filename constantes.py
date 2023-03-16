@@ -1,5 +1,16 @@
+# voce deverá descomentar e configurar a porta com através da qual ira fazer comunicaçao
+#   para saber a sua porta, execute no terminal :
+#   python -m serial.tools.list_ports
+# se estiver usando windows, o gerenciador de dispositivos informa a porta
+
 # The time to wait between buffer checks, in seconds
 CHECK_DELAY = 0.5
+
+# The max amount of time to wait for a packet, if not received a timeout packet is sent, in seconds
+TIMEOUT_TIME = 20
+
+# The time to wait to resend the last packet, in seconds
+RETRY_TIME = 5
 
 # The server ID
 SERVER_ID = 64  # 0x40
