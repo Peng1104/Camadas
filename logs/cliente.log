@@ -1,55 +1,95 @@
-[16/03/2023 14:40:34.944545] Escolha um arquivo para enviar...
-[16/03/2023 14:40:40.409559] Arquivo escolhido: img/Coracao2.png
-[16/03/2023 14:40:40.409731] Iniciando interface fisica...
-[16/03/2023 14:40:40.410192] Iniciando interface de transmissão...
-[16/03/2023 14:40:40.410616] Iniciando interface de recepção...
-[16/03/2023 14:40:40.416153] Sending handshake... for file img/Coracao2.png
-[16/03/2023 14:40:40.426607] Sending 14 bytes...
-[16/03/2023 14:40:40.452350] Data: b'\x01@\x00\x01\x01\x02\x00\x00\x00\x00\xaa\xbb\xcc\xdd'
-[16/03/2023 14:40:40.498544] Waiting response...
-[16/03/2023 14:40:42.065485] Debug
-[16/03/2023 14:40:42.116737] Server idle, ready to receive file.
-[16/03/2023 14:40:42.167874] Data creation start
-[16/03/2023 14:40:42.204087] Data processing finished, to be send 17 packets
-[16/03/2023 14:40:42.204215] Sending data...
-[16/03/2023 14:40:42.204270] Sending packet 1 of 17
-[16/03/2023 14:40:42.209465] Sending 128 bytes...
-[16/03/2023 14:40:42.209580] Data: b'\x03\x00\x00\x11\x01r\x00\x00\x00\x00' ... b'\xaa\xbb\xcc\xdd'
-[16/03/2023 14:40:43.714852] Packet 1 sent successfully
-[16/03/2023 14:40:43.771374] Sending packet 2 of 17
-[16/03/2023 14:40:43.817656] Sending 128 bytes...
-[16/03/2023 14:40:43.869063] Data: b'\x03\x00\x00\x11\x02r\x00\x00\x00\x00' ... b'\xaa\xbb\xcc\xdd'
-[16/03/2023 14:40:45.440958] Packet 2 sent successfully
-[16/03/2023 14:40:45.502659] Sending packet 3 of 17
-[16/03/2023 14:40:45.564295] Sending 128 bytes...
-[16/03/2023 14:40:45.625900] Data: b'\x03\x00\x00\x11\x03r\x00\x00\x00\x00' ... b'\xaa\xbb\xcc\xdd'
-[16/03/2023 14:40:47.187764] Packet 3 sent successfully
-[16/03/2023 14:40:47.233993] Sending packet 4 of 17
-[16/03/2023 14:40:47.280255] Sending 128 bytes...
-[16/03/2023 14:40:47.280423] Data: b'\x03\x00\x00\x11\x04r\x00\x00\x00\x00' ... b'\xaa\xbb\xcc\xdd'
-[16/03/2023 14:40:48.785758] Packet 4 sent successfully
-[16/03/2023 14:40:48.847256] Sending packet 5 of 17
-[16/03/2023 14:40:48.893442] Sending 128 bytes...
-[16/03/2023 14:40:48.944726] Data: b'\x03\x00\x00\x11\x05r\x00\x00\x00\x00' ... b'\xaa\xbb\xcc\xdd'
-[16/03/2023 14:40:50.506294] Packet 5 sent successfully
-[16/03/2023 14:40:50.562796] Sending packet 6 of 17
-[16/03/2023 14:40:50.603911] Sending 128 bytes...
-[16/03/2023 14:40:50.660429] Data: b'\x03\x00\x00\x11\x06r\x00\x00\x00\x00' ... b'\xaa\xbb\xcc\xdd'
-[16/03/2023 14:40:55.258659] Invalid packet
-[16/03/2023 14:40:55.325419] Sending packet 6 of 17
-[16/03/2023 14:40:55.371662] Sending 128 bytes...
-[16/03/2023 14:40:55.412925] Data: b'\x03\x00\x00\x11\x06r\x00\x00\x00\x00' ... b'\xaa\xbb\xcc\xdd'
-[16/03/2023 14:41:00.453669] Invalid packet
-[16/03/2023 14:41:00.494948] Sending packet 6 of 17
-[16/03/2023 14:41:00.556498] Sending 128 bytes...
-[16/03/2023 14:41:00.618167] Data: b'\x03\x00\x00\x11\x06r\x00\x00\x00\x00' ... b'\xaa\xbb\xcc\xdd'
-[16/03/2023 14:41:05.700985] Invalid packet
-[16/03/2023 14:41:05.726762] Sending packet 6 of 17
-[16/03/2023 14:41:05.742482] Sending 128 bytes...
-[16/03/2023 14:41:05.758111] Data: b'\x03\x00\x00\x11\x06r\x00\x00\x00\x00' ... b'\xaa\xbb\xcc\xdd'
-[16/03/2023 14:41:10.837921] Receiving timeout from server.
-[16/03/2023 14:41:10.884112] Desabilitando a comunicação...
-[16/03/2023 14:41:11.947352] -------------------------
-[16/03/2023 14:41:11.947471] Comunicação encerrada
-[16/03/2023 14:41:11.947581] -------------------------
-[16/03/2023 14:41:11.947684] Desabilitando a comunicação...
+[16/03/2023 14:44:11.426009] Escolha um arquivo para enviar...
+[16/03/2023 14:44:22.391576] Arquivo escolhido: img/Coracao2.png
+[16/03/2023 14:44:22.391842] Iniciando interface fisica...
+[16/03/2023 14:44:22.392291] Iniciando interface de transmissão...
+[16/03/2023 14:44:22.392703] Iniciando interface de recepção...
+[16/03/2023 14:44:22.398048] Sending handshake... for file img/Coracao2.png
+[16/03/2023 14:44:22.423781] Sending 14 bytes...
+[16/03/2023 14:44:22.454685] Data: b'\x01@\x00\x01\x01\x02\x00\x00\x00\x00\xaa\xbb\xcc\xdd'
+[16/03/2023 14:44:22.500918] Waiting response...
+[16/03/2023 14:44:24.527164] Debug
+[16/03/2023 14:44:24.568313] Server idle, ready to receive file.
+[16/03/2023 14:44:24.594215] Data creation start
+[16/03/2023 14:44:24.660882] Data processing finished, to be send 17 packets
+[16/03/2023 14:44:24.702027] Sending data...
+[16/03/2023 14:44:24.758347] Sending packet 1 of 17
+[16/03/2023 14:44:24.809494] Sending 128 bytes...
+[16/03/2023 14:44:24.860951] Data: b'\x03\x00\x00\x11\x01r\x00\x00\x00\x00' ... b'\xaa\xbb\xcc\xdd'
+[16/03/2023 14:44:26.412447] Packet 1 sent successfully
+[16/03/2023 14:44:26.448834] Sending packet 2 of 17
+[16/03/2023 14:44:26.500131] Sending 128 bytes...
+[16/03/2023 14:44:26.551404] Data: b'\x03\x00\x00\x11\x02r\x00\x00\x00\x00' ... b'\xaa\xbb\xcc\xdd'
+[16/03/2023 14:44:28.108031] Packet 2 sent successfully
+[16/03/2023 14:44:28.164541] Sending packet 3 of 17
+[16/03/2023 14:44:28.210789] Sending 128 bytes...
+[16/03/2023 14:44:28.251707] Data: b'\x03\x00\x00\x11\x03r\x00\x00\x00\x00' ... b'\xaa\xbb\xcc\xdd'
+[16/03/2023 14:44:29.813242] Packet 3 sent successfully
+[16/03/2023 14:44:29.854239] Sending packet 4 of 17
+[16/03/2023 14:44:29.910717] Sending 128 bytes...
+[16/03/2023 14:44:29.951893] Data: b'\x03\x00\x00\x11\x04r\x00\x00\x00\x00' ... b'\xaa\xbb\xcc\xdd'
+[16/03/2023 14:44:34.548898] Invalid packet
+[16/03/2023 14:44:34.600249] Sending packet 4 of 17
+[16/03/2023 14:44:34.651627] Sending 128 bytes...
+[16/03/2023 14:44:34.692642] Data: b'\x03\x00\x00\x11\x04r\x00\x00\x00\x00' ... b'\xaa\xbb\xcc\xdd'
+[16/03/2023 14:44:39.749931] Invalid packet
+[16/03/2023 14:44:39.806259] Sending packet 4 of 17
+[16/03/2023 14:44:39.872896] Sending 128 bytes...
+[16/03/2023 14:44:39.934448] Data: b'\x03\x00\x00\x11\x04r\x00\x00\x00\x00' ... b'\xaa\xbb\xcc\xdd'
+[16/03/2023 14:44:41.506226] Packet 4 sent successfully
+[16/03/2023 14:44:41.557520] Sending packet 5 of 17
+[16/03/2023 14:44:41.619138] Sending 128 bytes...
+[16/03/2023 14:44:41.675748] Data: b'\x03\x00\x00\x11\x05r\x00\x00\x00\x00' ... b'\xaa\xbb\xcc\xdd'
+[16/03/2023 14:44:43.232372] Packet 5 sent successfully
+[16/03/2023 14:44:43.293933] Sending packet 6 of 17
+[16/03/2023 14:44:43.355470] Sending 128 bytes...
+[16/03/2023 14:44:43.411913] Data: b'\x03\x00\x00\x11\x06r\x00\x00\x00\x00' ... b'\xaa\xbb\xcc\xdd'
+[16/03/2023 14:44:44.958314] Packet 6 sent successfully
+[16/03/2023 14:44:44.999513] Sending packet 7 of 17
+[16/03/2023 14:44:45.060939] Sending 128 bytes...
+[16/03/2023 14:44:45.107122] Data: b'\x03\x00\x00\x11\x07r\x00\x00\x00\x00' ... b'\xaa\xbb\xcc\xdd'
+[16/03/2023 14:44:46.663782] Packet 7 sent successfully
+[16/03/2023 14:44:46.720484] Sending packet 8 of 17
+[16/03/2023 14:44:46.782013] Sending 128 bytes...
+[16/03/2023 14:44:46.838493] Data: b'\x03\x00\x00\x11\x08r\x00\x00\x00\x00' ... b'\xaa\xbb\xcc\xdd'
+[16/03/2023 14:44:48.389799] Packet 8 sent successfully
+[16/03/2023 14:44:48.446191] Sending packet 9 of 17
+[16/03/2023 14:44:48.487201] Sending 128 bytes...
+[16/03/2023 14:44:48.528317] Data: b'\x03\x00\x00\x11\tr\x00\x00\x00\x00' ... b'\xaa\xbb\xcc\xdd'
+[16/03/2023 14:44:50.074474] Packet 9 sent successfully
+[16/03/2023 14:44:50.120518] Sending packet 10 of 17
+[16/03/2023 14:44:50.182036] Sending 128 bytes...
+[16/03/2023 14:44:50.233437] Data: b'\x03\x00\x00\x11\nr\x00\x00\x00\x00' ... b'\xaa\xbb\xcc\xdd'
+[16/03/2023 14:44:51.789987] Packet 10 sent successfully
+[16/03/2023 14:44:51.846333] Sending packet 11 of 17
+[16/03/2023 14:44:51.917917] Sending 128 bytes...
+[16/03/2023 14:44:51.958894] Data: b'\x03\x00\x00\x11\x0br\x00\x00\x00\x00' ... b'\xaa\xbb\xcc\xdd'
+[16/03/2023 14:44:53.530812] Packet 11 sent successfully
+[16/03/2023 14:44:53.587105] Sending packet 12 of 17
+[16/03/2023 14:44:53.587242] Sending 128 bytes...
+[16/03/2023 14:44:53.638560] Data: b'\x03\x00\x00\x11\x0cr\x00\x00\x00\x00' ... b'\xaa\xbb\xcc\xdd'
+[16/03/2023 14:44:55.184847] Packet 12 sent successfully
+[16/03/2023 14:44:55.231148] Sending packet 13 of 17
+[16/03/2023 14:44:55.267234] Sending 128 bytes...
+[16/03/2023 14:44:55.277740] Data: b'\x03\x00\x00\x11\rr\x00\x00\x00\x00' ... b'\xaa\xbb\xcc\xdd'
+[16/03/2023 14:44:56.824173] Packet 13 sent successfully
+[16/03/2023 14:44:56.880685] Sending packet 14 of 17
+[16/03/2023 14:44:56.936968] Sending 128 bytes...
+[16/03/2023 14:44:56.998644] Data: b'\x03\x00\x00\x11\x0er\x00\x00\x00\x00' ... b'\xaa\xbb\xcc\xdd'
+[16/03/2023 14:44:58.560192] Packet 14 sent successfully
+[16/03/2023 14:44:58.616638] Sending packet 15 of 17
+[16/03/2023 14:44:58.662845] Sending 128 bytes...
+[16/03/2023 14:44:58.698976] Data: b'\x03\x00\x00\x11\x0fr\x00\x00\x00\x00' ... b'\xaa\xbb\xcc\xdd'
+[16/03/2023 14:45:00.240151] Packet 15 sent successfully
+[16/03/2023 14:45:00.301584] Sending packet 16 of 17
+[16/03/2023 14:45:00.358139] Sending 128 bytes...
+[16/03/2023 14:45:00.429821] Data: b'\x03\x00\x00\x11\x10r\x00\x00\x00\x00' ... b'\xaa\xbb\xcc\xdd'
+[16/03/2023 14:45:01.975999] Packet 16 sent successfully
+[16/03/2023 14:45:02.032007] Sending packet 17 of 17
+[16/03/2023 14:45:02.088035] Sending 45 bytes...
+[16/03/2023 14:45:02.149012] Data: b'\x03\x00\x00\x11\x11\x1f\x00\x00\x00\x00' ... b'\xaa\xbb\xcc\xdd'
+[16/03/2023 14:45:03.715214] Packet 17 sent successfully
+[16/03/2023 14:45:03.766201] Todos os pacotes foram enviados com sucesso.
+[16/03/2023 14:45:03.812273] -------------------------
+[16/03/2023 14:45:03.868514] Comunicação encerrada
+[16/03/2023 14:45:03.935222] -------------------------
+[16/03/2023 14:45:03.976304] Desabilitando a comunicação...

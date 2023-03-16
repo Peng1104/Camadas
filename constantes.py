@@ -57,6 +57,12 @@ IDLE_PACKET = SERVER_LIVRE + \
 # The timeout packet, send when the last received packet was over 20 seconds ago
 TIMEOUT_PACKET = TIMEOUT + bytes(2) + b'\x01' + b'\x01' + bytes(5) + PACKET_END
 
+# The handshake packet, concatenate with the archive id to send
+HANDSHAKE_START = HANDSHAKE + \
+    SERVER_ID.to_bytes(length=1, byteorder='big') + b'\x00' + b'\x01' + b'\x01'
+
+HANDSHAKE_END = int(0).to_bytes(length=4, byteorder='big') + PACKET_END
+
 # Extentions to archiveID mapping
 __EXTENTIONS = {"txt": 1, "png": 2, "jpg": 3, "zip": 4, "mp3": 5,
                 "mp4": 6, "pdf": 7, "docx": 8, "pptx": 9, "xlsx": 10}
