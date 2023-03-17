@@ -3,6 +3,7 @@ from logFile import logFile
 from time import sleep
 from constantes import *
 from os.path import isfile
+from crc import Crc16, Calculator
 
 # voce deverá descomentar e configurar a porta com através da qual ira fazer comunicaçao
 #   para saber a sua porta, execute no terminal :
@@ -14,7 +15,7 @@ SERIAL_PORT_NAME = "/dev/ttyACM0"            # Ubuntu (variacao de)
 # SERIAL_PORT_NAME = "/dev/tty.usbmodem1411"   # Mac    (variacao de)
 # SERIAL_PORT_NAME = "COM5"
 
-class cliente():
+class Cliente():
 
     def __init__(self, serial_port_name: str) -> None:
         self.com = enlace(logFile("Cliente", False), serial_port_name)
@@ -103,20 +104,27 @@ class cliente():
         while len(data) > MAX_PAYLOAD_SIZE:
             payload = data[:MAX_PAYLOAD_SIZE]
             data = data[MAX_PAYLOAD_SIZE:]
+            crc = self.calcuateChecksum16(payload)
 
             head = DATA + b'\x00' + b'\x00' + total.to_bytes(length=1, byteorder='big') + (len(packets) + 1).to_bytes(
-                length=1, byteorder='big') + int(len(payload)).to_bytes(length=1, byteorder='big') + int(0).to_bytes(length=4, byteorder='big')
+                length=1, byteorder='big') + int(len(payload)).to_bytes(length=1, byteorder='big') + int(0).to_bytes(length=2, byteorder='big') + crc
 
             packets.append(head + payload + PACKET_END)
 
-        head = DATA + b'\x00' + b'\x00' + total.to_bytes(length=1, byteorder='big') + (len(packets) + 1).to_bytes(
-            length=1, byteorder='big') + int(len(data)).to_bytes(length=1, byteorder='big') + int(0).to_bytes(length=4, byteorder='big')
+        crc = self.calcuateChecksum16(data)
 
+        head = DATA + b'\x00' + b'\x00' + total.to_bytes(length=1, byteorder='big') + (len(packets) + 1).to_bytes(
+            length=1, byteorder='big') + int(len(data)).to_bytes(length=1, byteorder='big') + int(0).to_bytes(length=2, byteorder='big') + crc
+        
         packets.append(head + data + PACKET_END)
 
         self.log(f"Data processing finished, to be send {len(packets)} packets")
 
-        self.sendData(packets)        
+        self.sendData(packets)
+
+    def calcuateChecksum16(self, payload: bytes) -> bytes:
+        calculator = Calculator(Crc16.CCITT, optimized=True)
+        return calculator.checksum(payload).to_bytes(length=2, byteorder='big')  
     
     def sendPacket(self, packet: bytes, counter: int, total: int) -> bool:
         self.log(f"Sending packet {counter} of {total}")
@@ -195,7 +203,7 @@ class cliente():
         return self.com.isEnabled()
 
 if __name__ == "__main__":
-    client_obj = cliente(SERIAL_PORT_NAME)
+    client_obj = Cliente(SERIAL_PORT_NAME)
 
     while client_obj.is_alive():
         client_obj.chooseFile()

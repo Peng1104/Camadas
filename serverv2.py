@@ -2,6 +2,7 @@ from enlace import enlace
 from logFile import logFile
 from time import sleep
 from constantes import *
+from crc import Crc16, Calculator
 
 # voce deverá descomentar e configurar a porta com através da qual ira fazer comunicaçao
 #   para saber a sua porta, execute no terminal :
@@ -14,7 +15,7 @@ SERIAL_PORT_NAME = "/dev/ttyACM1"            # Ubuntu (variacao de)
 # SERIAL_PORT_NAME = "COM5"
 
 
-class server():
+class Server():
 
     def __init__(self, serial_port_name: str) -> None:
         self.com = enlace(logFile("Server", False), serial_port_name)
@@ -79,7 +80,7 @@ class server():
             return
 
         # Corrupted packet
-        if end != PACKET_END:
+        if end != PACKET_END or not self.isCrcValid(head[8:], payload):
             self.send_error(1, 0)
             return self.recive_data(archiveId)
 
@@ -137,6 +138,10 @@ class server():
         self.log("Comunication ended.")
         self.log("-------------------------")
 
+    def isCrcValid(self, expectedCrc: bytes, payload: bytes) -> bool:
+        calculator = Calculator(Crc16.CCITT, optimized=True)
+        return calculator.verify(payload, int.from_bytes(expectedCrc, byteorder='big'))
+
     def next_data_packet(self, next: int, total: int) -> tuple[bool, bytes]:
         self.log(f"Waiting for packet {next} of {total}...")
 
@@ -149,7 +154,7 @@ class server():
         # Corrupted packet
         if end != PACKET_END:
             self.log(
-                f"Packet {next} is not valid, end of packet is not valid.")
+                f"Packet {next} is not valid, end of packet is not valid. Expected {PACKET_END}, received {end}.")
             return False, None
 
         type = head[0].to_bytes(length=1, byteorder='big')
@@ -169,7 +174,13 @@ class server():
         if packetId != next:
             self.log(f"Invalid packet id {packetId}, expected {next}")
             return False, None
+        
+        crc = head[8:]
 
+        if not self.isCrcValid(crc, payload):
+            self.log(f"CRC is not valid for packet {packetId}, expected {crc}")
+            return False, None
+        
         self.log(f"Packet {packetId} of {total} received.")
 
         return False, payload
@@ -200,7 +211,7 @@ class server():
 
 
 if __name__ == "__main__":
-    server_obj = server(SERIAL_PORT_NAME)
+    server_obj = Server(SERIAL_PORT_NAME)
 
     while server_obj.is_alive():
         server_obj.idle()
