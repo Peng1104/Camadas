@@ -116,7 +116,86 @@ class cliente():
 
         self.log(f"Data processing finished, to be send {len(packets)} packets")
 
-        self.sendData(packets)
+        self.sendData(packets)        
+    
+    def sendPacket(self, packet: bytes, counter: int, total: int) -> bool:
+        self.log(f"Sending packet {counter} of {total}")
 
+        self.com.sendPacket(packet)  # Envia o pacote
+        sleep(1.5)  # 1.5s para o servidor processar o pacote
+
+        head, _, end = self.com.recivePacket()
+
+        if head is None:
+            return None
+
+        type = head[0].to_bytes(length=1, byteorder='big')
+        total = head[3]
+        packetId = head[4]
+        expected_counter = head[6]
+        last_valid = head[7]
+
+        if end != PACKET_END or packetId != 1 or total != 1:
+            self.log("INVALID PACKET END")
+            self.com.clearBuffer()
+            return False
+
+        if type == VALIDATION and last_valid == counter:
+            self.log(f"Packet {counter} sent successfully")
+            return True
+
+        if type == TIMEOUT:
+            self.log("Receiving timeout from server.")
+            self.com.disable()
+            return None
+
+        if type == ERROR:
+            self.log(
+                f"Error, expected packet number: {expected_counter}, last valid packet: {last_valid}")
+            return last_valid
+
+        else:
+            self.log("Invalid packet")
+            self.com.clearBuffer()
+
+        return False
+    
     def sendData(self, packets) -> None:
-        pass
+        self.log("Sending data...")
+        counter = 0
+        while counter < len(packets):
+            result = self.sendPacket(packets[counter], counter+1, len(packets))
+
+            if result is None:
+                self.log("-------------------------")
+                self.log("Comunicação encerrada")
+                self.log("-------------------------")
+                self.com.disable()
+                return
+
+            if type(result) == int:
+                counter = result
+
+            elif result:
+                counter += 1
+        
+        # A camada enlace possui uma camada inferior, TX possui um método para conhecermos o status da transmissão
+        # O método não deve estar fincionando quando usado como abaixo. deve estar retornando zero. Tente entender como esse método funciona e faça-o funcionar.
+        # print(f"Payload sended, {com.tx.getStatus()} bytes sended.")
+
+        self.log("Todos os pacotes foram enviados com sucesso.")
+
+        # Encerra comunicação
+        self.log("-------------------------")
+        self.log("Comunicação encerrada")
+        self.log("-------------------------")
+        self.com.disable()
+    
+    def is_alive(self) -> bool:
+        return self.com.isEnabled()
+
+if __name__ == "__main__":
+    client_obj = cliente(SERIAL_PORT_NAME)
+
+    while client_obj.is_alive():
+        client_obj.chooseFile()
