@@ -28,7 +28,7 @@ from logFile import logFile
 
 class enlace():
 
-    def __init__(self, log_file: logFile, retry_timer : int, id : int, serial_port_name: str) -> None:
+    def __init__(self, log_file: logFile, retry_timer: int, id: int, serial_port_name: str) -> None:
         self.__enabled = False
         self.__log_file = log_file
         self.__id = id
@@ -74,7 +74,7 @@ class enlace():
     def sendPacket(self, packet: bytes, own: bool = True) -> None:
         if not self.isEnabled():
             return
-        
+
         if own:
             self.__last_packet = packet
 
@@ -83,33 +83,38 @@ class enlace():
         else:
             self.log("Passing packet trough...")
 
+        # Check if packet type is data to remove payload from debug
         if packet[0].to_bytes(1, 'big') == DATA:
             self.log(f"Data: {packet[:HEAD_SIZE]} ... {packet[-END_SIZE:]}")
             self.log(f"Sending {len(packet)} bytes...")
 
         else:
             self.log(f"Data: {packet}")
-        
+
         self.tx.sendBuffer(asarray(packet))
 
-    def recivePacket(self, senderId : int, retry: bool = True, timer : int = 0) -> tuple[bytes, bytes, bytes]:
+    def recivePacket(self, id: int, timer: int = 0) -> tuple[bytes, bytes, bytes]:
         if not self.isEnabled():
             return None, None, None
 
-        while self.rx.getBufferLen() < MIN_PACKET_SIZE:
+        while self.rx.getBufferLen() < MIN_PACKET_SIZE and self.isEnabled():
             sleep(CHECK_DELAY)
             timer += CHECK_DELAY
 
             if timer >= TIMEOUT_TIME:
-                if retry:
+                if id > -1:
                     self.log("Sending timeout packet...")
-                    self.sendPacket(TIMEOUT + senderId.to_bytes(1, 'big') + FIXED_END)
+                    self.sendPacket(
+                        TIMEOUT + id.to_bytes(1, 'big') + FIXED_END)
                 return None, None, None
 
-            if retry and timer % self.__retry_timer == 0:
+            if id > -1 and timer % self.__retry_timer == 0:
                 self.log(
                     f"Sending last packet again ({timer // self.__retry_timer})...")
                 self.sendPacket(self.__last_packet)
+
+        if not self.isEnabled():
+            return None, None, None
 
         head = self.rx.getBuffer(HEAD_SIZE)
 
@@ -126,7 +131,7 @@ class enlace():
                 self.clearBuffer()
 
                 if ignore:
-                    return self.recivePacket(senderId, retry, timer)
+                    return self.recivePacket(id, timer)
 
                 return head, None, None
             else:
@@ -136,6 +141,6 @@ class enlace():
 
         if ignore:
             self.sendPacket(head + payload + end, False)
-            return self.recivePacket(senderId, retry, timer)
+            return self.recivePacket(id, timer)
 
         return head, payload, end

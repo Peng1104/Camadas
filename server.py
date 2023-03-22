@@ -42,7 +42,7 @@ class Server():
     def wating_packet(self) -> None:
         self.log("Waiting for a packet...")
 
-        head, payload, end = self.com.recivePacket(-1, False)
+        head, payload, end = self.com.recivePacket(-1)
 
         if end != PACKET_END:
             self.log(

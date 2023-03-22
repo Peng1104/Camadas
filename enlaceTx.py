@@ -7,9 +7,6 @@
 #  Camada de Enlace
 ####################################################
 
-# Importa pacote de tempo
-import time
-
 # Threads
 from threading import Thread
 
@@ -20,19 +17,18 @@ class TX:
 
     def __init__(self, fisica):
         self.fisica = fisica
-        self.buffer = bytes(bytearray())
+        self.__buffer = []
         self.transLen = 0
-        self.empty = True
         self.threadMutex = False
         self.threadStop = False
 
-        self.thread = Thread(target=self.thread, args=())
-        self.thread.start()
+        thread = Thread(target=self.thread, args=())
+        thread.start()
 
     def thread(self):
         while not self.threadStop:
-            if self.threadMutex:
-                self.transLen = self.fisica.write(self.buffer)
+            if self.getIsBussy():
+                self.transLen = self.fisica.write(self.__buffer.pop(0))
                 self.threadMutex = False
 
     def threadKill(self):
@@ -46,14 +42,14 @@ class TX:
 
     def sendBuffer(self, data):
         self.transLen = 0
-        self.buffer = data
+        self.__buffer.append(data)
         self.threadMutex = True
 
     def getBufferLen(self):
-        return len(self.buffer)
+        return sum(len(x) for x in self.__buffer)
 
     def getStatus(self):
         return self.transLen
 
     def getIsBussy(self):
-        return self.threadMutex
+        return self.threadMutex or len(self.__buffer) > 0
