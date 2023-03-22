@@ -1,7 +1,14 @@
+# Internal Objects
 from enlace import enlace
 from logFile import logFile
+from client_connection_manager import ClientManager
+
+# Threads
+from threading import Thread
+from time import sleep
+
+# Configurations
 from constantes import *
-import time
 
 # voce deverá descomentar e configurar a porta com através da qual ira fazer comunicaçao
 #   para saber a sua porta, execute no terminal :
@@ -9,214 +16,109 @@ import time
 # se estiver usando windows, o gerenciador de dispositivos informa a porta
 
 # use uma das 3 opcoes para atribuir à variável a porta usada
-SERIAL_PORT_NAME = "/dev/ttyACM1"            # Ubuntu (variacao de)
+SERIAL_PORT_NAME = "/dev/ttyACM1"              # Ubuntu (variacao de)
 # SERIAL_PORT_NAME = "/dev/tty.usbmodem1411"   # Mac    (variacao de)
-# SERIAL_PORT_NAME = "COM5"                    # Windows(variacao de)
+# SERIAL_PORT_NAME = "COM5"
 
-LOG_FILE = logFile(__file__)
-
-
-def log(msg: str) -> None:
-    LOG_FILE.log(msg)
-
-# HEAD
-# h0 – Tipo de mensagem
-# h1 – Se tipo for handshake: número do servidor, se não 0
-# h2 - 0
-# h3 – Número total de pacotes do arquivo
-# h4 – Número do pacote sendo enviado
-# h5 – Se tipo for handshake: id do arquivo (crie um para cada arquivo). Se tipo for dados: tamanho do payload.
-# h6 – Pacote solicitado para recomeço quando a erro no envio
-# h7 – Ùltimo pacote recebido com sucesso
-# h8h9 – CRC (Por ora deixe em branco. Fará parte do projeto 5).
-# Payload 0 - 114 Bytes, the packet data.
-# End of packet 4 Bytes (0xAA 0xBB 0xCC 0xDD)
+SERVER_RETRY_TIMER = 5  # Retry sending the packet again in seconds
 
 
-def handshake_confirmation(com: enlace) -> tuple[int, int]:
-    # Wait for client to send handshake
+class Server():
 
-    log("Waiting for handshake packet...")
+    def __init__(self, serial_port_name: str, server_retry_timer: int, serverId: int) -> None:
+        self.com = enlace(logFile("Server", False),
+                          server_retry_timer, serverId, serial_port_name)
 
-    handshake = com.getData(10)
+        self.id = serverId
 
-    # Reads the handshake packet
-    type = handshake[0].to_bytes(length=1, byteorder='big')
-    serverId = handshake[1]
-    totalPackets = handshake[3]
-    packetId = handshake[4]
-    archiveId = handshake[5]
+        self.managers = {}
 
-    end = com.getData(4)
-    com.rx.clearBuffer()
+    def log(self, message: str) -> None:
+        self.com.log(message)
 
-    log("Packet received.")
+    def sendPacket(self, packet: bytes) -> None:
+        self.com.sendPacket(packet)
 
-    if type == HANDSHAKE and end == PACKET_END:
-        log("Handshake packet received.")
+    def wating_packet(self) -> None:
+        self.log("Waiting for a packet...")
 
-        # Check if the handshake is valid and for this server
-        if serverId == SERVER_ID and packetId == 1:
-            log("Handshake packet is valid.")
+        head, payload, end = self.com.recivePacket(-1, False)
 
-            # Send handshake confirmation
-            time.sleep(1)
-            com.sendPacket(IDLE_PACKET)
+        if end != PACKET_END:
+            self.log(
+                f"Recived invalid Packet eof is {end}, expected {PACKET_END}")
+            return
 
-            return archiveId, totalPackets
-        else:
-            log(f'Handshake for server {serverId}, received, ignoring...')
+        type = head[0].to_bytes(1, 'big')
 
-    return -1, -1
-
-
-def getNextData(com: enlace, expected: int, counter: int, head: bytes) -> bytes:
-    type = head[0].to_bytes(length=1, byteorder='big')
-    total = head[3]
-    packetNumber = head[4]
-    payloadSize = head[5]
-
-    if type == DATA:
-        if total == expected:
-            if packetNumber == counter + 1:
-                log(f"Packet {packetNumber} of {total} received.")
-
-                payload = com.getData(payloadSize)
-
-                end = com.getData(4)
-
-                if end == PACKET_END:
-                    log(f"Packet {packetNumber} of {total} is valid.")
-                    return payload
-
-                else:
-                    log(f"Packet {packetNumber} of {total} is not valid, end of packet is not valid.")
-                    com.rx.clearBuffer()
-
-            else:
-                log(
-                    f"Invalid packet, expected packet number {counter + 1}, but received {packetNumber}.")
-                com.rx.clearBuffer()
+        if type == HANDSHAKE:
+            self.handle_handshake(head)
 
         else:
-            log(f"Invalid packet, expected {expected} packets, received {total}.")
-            com.rx.clearBuffer()
+            senderId = head[2]
+            manager = self.managers[senderId]
 
-    else:
-        log(f"Invalid packet type {type} recived, ignoring...")
-        com.rx.clearBuffer()
-
-    return None
-
-
-def main():
-    try:
-        # Ativa comunicacao. Inicia os threads e a comunicação seiral
-        com = enlace(SERIAL_PORT_NAME)
-
-        archiveId = -1
-
-        # Wait for handshake confirmation
-        while archiveId < 0:
-            archiveId, totalPackets = handshake_confirmation(com)
-
-        data = b''
-
-        packetCounter = 0
-        timer = 0
-
-        while packetCounter < totalPackets:
-            while com.rx.getBufferLen() < 14:
-                time.sleep(0.5)
-                timer += 0.5
-
-                if timer % 2 == 0 and timer < 20:
-                    log(
-                        f"Reenviando pacote de confirmação para o pacote {packetCounter}")
-
-                    validation_packet = VALIDATION + b'\x00' + b'\x00' + b'\x01' + b'\x01' + \
-                        b'\x00' + b'\x00' + packetCounter.to_bytes(length=1, byteorder='big') + \
-                        int(0).to_bytes(length=2, byteorder='big') + PACKET_END
-
-                    com.sendPacket(validation_packet)
-
-            if timer >= 20:
-                log("Time out, sending timeout packet.")
-
-                com.sendPacket(TIMEOUT_PACKET)
-
-                com.disable()
-                print("Conexão encerrada.")
+            if manager is None:
+                self.log(f"Client {senderId} not connected, ignoring...")
                 return
 
-            timer = 0
+            manager.handle_packet(head, payload)
 
-            nextData = getNextData(
-                com, totalPackets, packetCounter, com.getData(10))
+    def handle_handshake(self, handshake: bytes) -> None:
+        packetId = handshake[4]
 
-            if nextData is not None:
-                data += nextData
-                packetCounter += 1
+        # Not a handshake packet
+        if packetId != 0:
+            self.log(
+                f"Invalid handshake packet, recived packetId = {packetId} ignoring...")
+            return
 
-                log(
-                    f"Sending validation for packet {packetCounter} of {totalPackets}.")
+        clientId = handshake[2]
+        amount_of_data_packets = handshake[3]
+        archiveId = handshake[5]
 
-                validation_packet = VALIDATION + b'\x00' + b'\x00' + b'\x01' + b'\x01' + \
-                    b'\x00' + b'\x00' + packetCounter.to_bytes(length=1, byteorder='big') + \
-                    int(0).to_bytes(length=2, byteorder='big') + PACKET_END
-                
-                com.sendPacket(validation_packet)
+        self.log(
+            f"Received handshake from client {clientId} for file type {archiveId}, expecting {amount_of_data_packets} of data packets.")
 
-            else:
-                log(f"Sending error for packet {packetCounter + 1} of {totalPackets}.")
+        if self.managers[clientId] is not None:
+            self.log(f"Client {clientId} already connected, ignoring...")
+            return
 
-                error_packet = ERROR + b'\x00' + b'\x00' + b'\x01' + b'\x01' + \
-                    b'\x00' + (packetCounter + 1).to_bytes(length=1, byteorder='big') + \
-                    packetCounter.to_bytes(length=1, byteorder='big') + \
-                    int(0).to_bytes(length=2, byteorder='big') + PACKET_END
+        self.managers[clientId] = ClientManager(
+            self, clientId, amount_of_data_packets, archiveId)
 
-                com.sendPacket(error_packet)
+        sleep(1)
 
-        log(f"Writting file with {len(data)} bytes.")
+        self.sendPacket(SERVER_LIVRE + clientId.to_bytes(1, 'big') +
+                        self.id.to_bytes(1, 'big') + FIXED_END)
 
-        match archiveId:
-            case 1:
-                extention = ".txt"
-            case 2:
-                extention = ".png"
-            case 3:
-                extention = ".jpg"
-            case 4:
-                extention = ".zip"
-            case 5:
-                extention = ".mp3"
-            case 6:
-                extention = ".mp4"
-            case 7:
-                extention = ".pdf"
-            case 8:
-                extention = ".docx"
-            case 9:
-                extention = ".pptx"
-            case 10:
-                extention = ".xlsx"
+    def clearBuffer(self) -> None:
+        self.com.clearBuffer()
 
-        with open("data/recived" + extention, "wb") as file:
-            file.write(data)
+    def end(self) -> None:
+        self.com.disable()
 
-        log("File written.")
-
-        # Encerra comunicação
-        log("-------------------------")
-        log("Comunication ended.")
-        log("-------------------------")
-        com.disable()
-
-    except Exception as e:
-        print("Error ->", e)
-        com.disable()
+    def is_alive(self) -> bool:
+        return self.com.isEnabled()
 
 
-    # so roda o main quando for executado do terminal ... se for chamado dentro de outro modulo nao roda
+def server_therad(server: Server) -> None:
+    while server.is_alive():
+        server.handle_handshake()
+
+
 if __name__ == "__main__":
-    main()
+    server = Server(SERIAL_PORT_NAME, SERVER_RETRY_TIMER, SERVER_ID)
+
+    thread = Thread(target=server_therad, args=(server), name="Server Thread")
+    thread.start()
+
+    command = input("Para parar o servidor escreva stop").lower()
+
+    while command != "stop":
+        if command == "clear":
+            server.clearBuffer()
+
+        command = input("Para parar o servidor escreva stop").lower()
+
+    server.end()

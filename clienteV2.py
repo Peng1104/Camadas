@@ -15,6 +15,13 @@ SERIAL_PORT_NAME = "/dev/ttyACM0"            # Ubuntu (variacao de)
 # SERIAL_PORT_NAME = "/dev/tty.usbmodem1411"   # Mac    (variacao de)
 # SERIAL_PORT_NAME = "COM5"
 
+# The handshake packet, concatenate with the archive id to send
+HANDSHAKE_START = HANDSHAKE.to_bytes(length=1, byteorder='big') + \
+    SERVER_ID.to_bytes(length=1, byteorder='big') + b'\x00' + b'\x01' + b'\x01'
+
+# The end of the handshake packet
+HANDSHAKE_END = bytes(4) + PACKET_END
+
 class Cliente():
 
     def __init__(self, serial_port_name: str) -> None:
