@@ -38,6 +38,10 @@ void sendSerialByte(char data) {
     digitalWrite(digitalTxPin, LOW); // Even parity
     delayMicroseconds(bitDelay);
   }
+  else {
+    digitalWrite(digitalTxPin, HIGH); // Odd parity
+    delayMicroseconds(bitDelay);
+  }
 
   // Stop bit
   digitalWrite(digitalTxPin, HIGH);
