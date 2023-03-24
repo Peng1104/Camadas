@@ -11,13 +11,8 @@ void setup() {
   digitalWrite(digitalTxPin, HIGH); // Sets the starting value of the digital pin to HIGH
 }
 
-void loop() {
-  sendSerialByte(asciiLetter); // Send the ASCIIletter each second
-  delay(1000);
-}
-
 void sendSerialByte(char data) {
-  // Start bit
+  //Start bit
   digitalWrite(digitalTxPin, LOW);
   delayMicroseconds(bitDelay);
 
@@ -45,4 +40,9 @@ void sendSerialByte(char data) {
 
   // Stop bit
   digitalWrite(digitalTxPin, HIGH);
+}
+
+void loop() {
+  sendSerialByte(asciiLetter); // Send the ASCIIletter each second
+  delay(1000);
 }

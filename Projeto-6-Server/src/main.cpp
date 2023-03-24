@@ -5,20 +5,12 @@ const int digitalRxPin = 6; // Digital pin that emulates the Tx pin
 const long baudRate = 9600;   // Chose any baud rate you want
 const long bitDelay = 1000000L / baudRate; // Calculate the delay between bits
 
-void setUp() {
+void setup() {
   Serial.begin(9600);
   pinMode(digitalRxPin, INPUT); // Sets the digital pin as an output to emulate the Rx pin
 }
 
-void loop() {
-    char receivedByte = receiveSerialByte();
-    if (receivedByte != NULL) {
-      Serial.println(receivedByte);
-    }
-    delay(1000);
-}
-
-char receiveSerialByte() {
+char receiveData() {
   // Looping until the start bit is received
   while (digitalRead(digitalRxPin) == HIGH) {
     delayMicroseconds(bitDelay);
@@ -39,7 +31,6 @@ char receiveSerialByte() {
   delayMicroseconds(bitDelay);
   if (digitalRead(digitalRxPin) == HIGH && numberOfOnes % 2 == 0) {
     Serial.println("Parity error");
-    return NULL;
   }
 
   // Stop bit
@@ -47,6 +38,13 @@ char receiveSerialByte() {
   if (digitalRead(digitalRxPin) == HIGH) {
     return data;
   }
+  return 'e';
+}
 
-  return data;
+void loop() {
+  char receivedByte = receiveData();
+  if (receivedByte != 'e') {
+    Serial.println(receivedByte);
+  }
+  delay(1000);
 }
