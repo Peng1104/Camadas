@@ -14,7 +14,10 @@ void setup() {
 void sendSerialByte(char data) {
   //Start bit
   digitalWrite(digitalTxPin, LOW);
-  delayMicroseconds(bitDelay);
+  for (size_t i = 0; i < 2187; i++){
+    asm("nop");
+  }
+
 
   // Data bits
   int numberOfOnes = 0;
@@ -25,24 +28,33 @@ void sendSerialByte(char data) {
     } else {
       digitalWrite(digitalTxPin, LOW);
     }
-    delayMicroseconds(bitDelay);
+    for (size_t i = 0; i < 2187; i++){
+      asm("nop");
+    }
   }
 
   // Parity bit
   if (numberOfOnes % 2 == 0) {
     digitalWrite(digitalTxPin, LOW); // Even parity
-    delayMicroseconds(bitDelay);
+    for (size_t i = 0; i < 2187; i++){
+      asm("nop");
+    }
   }
   else {
     digitalWrite(digitalTxPin, HIGH); // Odd parity
-    delayMicroseconds(bitDelay);
+    for (size_t i = 0; i < 2187; i++){
+      asm("nop");
+    }
   }
 
   // Stop bit
   digitalWrite(digitalTxPin, HIGH);
+  for (size_t i = 0; i < 2187; i++){
+    asm("nop");
+  }
 }
 
 void loop() {
   sendSerialByte(asciiLetter); // Send the ASCIIletter each second
-  delay(1000);
+  delay(2000);
 }
