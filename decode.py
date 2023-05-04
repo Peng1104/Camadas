@@ -46,9 +46,9 @@ def main():
 
     #Get Frequency peaks
     index = peakutils.indexes(yf, thres=0.1, min_dist=50)
-    print("Frequencias detectadas: {}" .format(xf[index]))
     filtered_f = set(
         map(int, [x for x in xf[index] if x <= 2000 and x >= 500]))
+    print("Frequencias detectadas: {}" .format(filtered_f))
     
     # Decide which key was pressed
     for key, values in KEYS.items():
