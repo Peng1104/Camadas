@@ -37,12 +37,12 @@ def main():
 
     print("Plotando FFT")
     S.plotFFT(audioFlat, SAMPLE_RATE)
-    plt.xlim(0, 20000)
+    plt.xlim(500, 1800)
     plt.show()
    
     xf, yf = S.calcFFT(audioFlat, SAMPLE_RATE)
 
-    index = peakutils.indexes(yf, thres=0.4, min_dist=50)
+    index = peakutils.indexes(yf, thres=0.3, min_dist=50)
     #print("index de picos {}" .format(index))
     print("Frequencias detectadas: {}" .format(xf[index]))
 
