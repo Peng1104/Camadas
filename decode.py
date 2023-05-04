@@ -17,6 +17,7 @@ T_ARRAY = np.arange(0, DURATION, T)
 S = signalMeu()
 sd.default.samplerate = SAMPLE_RATE
 sd.default.channels = 1
+MARGIN_OF_ERROR = 10
 
 
 def main():
@@ -55,7 +56,7 @@ def main():
         match_count = 0
 
         for value in values:
-            if filtered_f.intersection(range(value-10, value+10)):
+            if filtered_f.intersection(range(value-MARGIN_OF_ERROR, value+MARGIN_OF_ERROR)):
                 match_count += 1
 
         #Matched Key
