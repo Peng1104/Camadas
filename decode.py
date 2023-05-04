@@ -42,9 +42,11 @@ def main():
    
     xf, yf = S.calcFFT(audioFlat, SAMPLE_RATE)
 
-    index = peakutils.indexes(yf, thres=0.3, min_dist=50)
-    #print("index de picos {}" .format(index))
+    index = peakutils.indexes(yf, thres=0.1, min_dist=50)
+    print("index de picos {}" .format(index))
     print("Frequencias detectadas: {}" .format(xf[index]))
+    filtered_f = [x for x in xf[index] if x <= 2000 and x>=500]
+    print(filtered_f)
 
 
 
