@@ -58,6 +58,7 @@ def main():
             if filtered_f.intersection(range(value-10, value+10)):
                 match_count += 1
 
+        #Matched Key
         if match_count == len(values):
             print(f"A Key pressionada é: {key}")
             return
@@ -65,7 +66,6 @@ def main():
     #Can't detect
     print("Não foi possivel detectar uma key, tente novamenete")
     return
-
 
 if __name__ == "__main__":
     main()
