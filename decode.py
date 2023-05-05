@@ -17,7 +17,7 @@ T_ARRAY = np.arange(0, DURATION, T)
 S = signalMeu()
 sd.default.samplerate = SAMPLE_RATE
 sd.default.channels = 1
-MARGIN_OF_ERROR = 10
+MARGIN_OF_ERROR = 2
 
 
 def main():
@@ -42,31 +42,36 @@ def main():
     plt.xlim(500, 1800)
     plt.show()
 
-    #Calculate FFT
+    # Calculate FFT
     xf, yf = S.calcFFT(audioFlat, SAMPLE_RATE)
 
-    #Get Frequency peaks
+    # Get Frequency peaks
     index = peakutils.indexes(yf, thres=0.1, min_dist=50)
-    filtered_f = set(
-        map(int, [x for x in xf[index] if x <= 2000 and x >= 500]))
+    filtered_f = set(map(int, xf[index]))
     print("Frequencias detectadas: {}" .format(filtered_f))
-    
-    # Decide which key was pressed
-    for key, values in KEYS.items():
+
+    teclas = []
+
+    # Check for each key
+    for tecla, frequencias in KEYS.items():
+        # Match counter
         match_count = 0
 
-        for value in values:
-            if filtered_f.intersection(range(value-MARGIN_OF_ERROR, value+MARGIN_OF_ERROR)):
+        # Check if the frequency is present in the filtered frequencies, with a margin of error
+        for frequencia in frequencias:
+            if filtered_f.intersection(range(frequencia-MARGIN_OF_ERROR, frequencia+MARGIN_OF_ERROR)):
                 match_count += 1
 
-        #Matched Key
-        if match_count == len(values):
-            print(f"A Key pressionada é: {key}")
-            return
+        # If all frequencies match
+        if match_count == len(frequencias):
+            teclas.append(tecla)
 
-    #Can't detect
-    print("Não foi possivel detectar uma key, tente novamenete")
-    return
+    if len(teclas) == 1:
+        print(f"A Tecla pressionada é: {teclas[0]}")
+    else:
+        print(
+            f"Não foi possivel detectar qual tecla foi pressionada, tente novamenete {teclas}")
+
 
 if __name__ == "__main__":
     main()
