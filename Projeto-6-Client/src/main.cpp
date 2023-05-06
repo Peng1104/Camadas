@@ -3,8 +3,7 @@
 // Constants
 const int OUTPUT_PIN = 5;         // Digital pin that emulates the Tx pin
 const int BAUD_RATE = 9600;       // Chose any baud rate you want
-const long CPU_CLOCK = 21000000; // The arduino cpu clock, 21 MHz
-const long DELAY = CPU_CLOCK/BAUD_RATE;  // Delay in milliseconds
+const long DELAY = F_CPU /BAUD_RATE;  // Delay in milliseconds
 
 void setup()
 {
