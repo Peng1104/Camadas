@@ -1,10 +1,12 @@
 # Importe todas as bibliotecas
 from suaBibSignal import *
+from os.path import isfile
+from pydub import AudioSegment, effects
+from pydub.playback import play
 import peakutils
 import numpy as np
 import sounddevice as sd
 import matplotlib.pyplot as plt
-import time
 import itertools
 
 # Configs and constants
@@ -18,14 +20,41 @@ S = signalMeu()
 sd.default.samplerate = SAMPLE_RATE
 sd.default.channels = 1
 MARGIN_OF_ERROR = 2
+AUDIO_FILE = "output.wav"
+
+
+def recordNewFile():
+    input("Pressione uma tecla para iniciar a gravação...")
+
+    # Record audio
+    audio = AudioSegment(
+        sd.rec(int(DURATION * SAMPLE_RATE), SAMPLE_RATE, channels=1))
+    sd.wait()
+
+    print("Gravação finalizada")
+
+    AudioSegment.export(audio, AUDIO_FILE, format="wav")
+
+    if input("Audio salvo, Gravar novamente?") == "s":
+        recordNewFile()
+
+    return audio
 
 
 def main():
+    audio = []
 
-    # Record audio
-    audio = sd.rec(int(DURATION * SAMPLE_RATE), SAMPLE_RATE, channels=1)
-    sd.wait()
-    print("Audio sample recorded")
+    if input("Ultilizar mp3? (s/n)") == "s":
+        audio = AudioSegment.from_mp3("hog-rider.mp3")
+    elif isfile(AUDIO_FILE):
+        if input("Deseja ultilizar o arquivo de audio salvo? (s/n)") == "s":
+            audio = AudioSegment.from_wav(AUDIO_FILE)
+        else:
+            audio = recordNewFile()
+    else:
+        audio = recordNewFile()
+
+    normalized = effects.normalize(audio)
 
     # flatten audio list
     audioFlat = list(itertools.chain(*audio))
