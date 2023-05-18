@@ -54,6 +54,14 @@ def main():
         modulada = portadora * filteredAudio
 
         sd.play(modulada, sampleRate)
+        sd.wait()
+
+        print("Play again? (y/n)")
+        inp: str = input()
+        if inp == "n":
+            cont = False
+            print("-----END-----")
+            return
 
 
 if __name__ == "__main__":
