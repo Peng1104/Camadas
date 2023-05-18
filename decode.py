@@ -8,6 +8,7 @@ import numpy as np
 import sounddevice as sd
 import matplotlib.pyplot as plt
 import itertools
+from funcoes_LPF import *
 
 # Configs and constants
 SAMPLE_RATE = 44100
@@ -22,7 +23,7 @@ AUDIO_FILE = "output.wav"
 
 
 def recordAudio():
-    
+
     while True:
         input("Pressione uma tecla para iniciar a gravação...")
 
@@ -42,20 +43,28 @@ def recordAudio():
 def main():
     audio = recordAudio()
 
+    t_array = np.arange(0, len(audio)/SAMPLE_RATE, T)
+
+    portadora = np.sin(2*14000*np.pi*t_array)
+
+    modulada = portadora * audio
+
+    filteredAudio = LPF(modulada, 4000, SAMPLE_RATE)
+
     print("Plotando audio no tempo")
-    plt.plot(T_ARRAY, audio)
+    plt.plot(T_ARRAY, filteredAudio)
     plt.title("audio no t")
     plt.xlabel("t")
     plt.ylabel("Amplitude")
     plt.show()
 
     print("Plotando FFT")
-    S.plotFFT(audio, SAMPLE_RATE)
-    plt.xlim(500, 1800)
+    S.plotFFT(filteredAudio, SAMPLE_RATE)
+    plt.xlim(0, 20000)
     plt.show()
 
     # Calculate FFT
-    xf, yf = S.calcFFT(audio, SAMPLE_RATE)
+    xf, yf = S.calcFFT(filteredAudio, SAMPLE_RATE)
 
     # Get Frequency peaks
     index = peakutils.indexes(yf, thres=0.1, min_dist=50)
