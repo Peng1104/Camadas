@@ -16,7 +16,7 @@ DEFAULT_AUDIO_FILE = "hog-rider.wav"
 
 
 def prepareAudioForTransmission(audio: np.array, sampleRate: int):
-    return LPF(list(itertools.chain(*audio)), 4000, sampleRate)
+    return LPF(audio, 4000, sampleRate)
 
 
 def main():
@@ -30,8 +30,6 @@ def main():
         while True:
             audioFile: str = input("Enter the file path: ") + ".wav"
 
-            print(audioFile)
-
             if not isfile(audioFile):
                 print("Invalid path, try again")
             else:
@@ -41,7 +39,9 @@ def main():
 
         sampleRate = audio[0]
 
-        filteredAudio = prepareAudioForTransmission(audio[1], sampleRate)
+        channel1 = audio[1][:,0]
+
+        filteredAudio = prepareAudioForTransmission(channel1, sampleRate)
 
         t = 1/sampleRate
 
