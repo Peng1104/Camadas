@@ -5,7 +5,7 @@ import sounddevice as sd
 import matplotlib.pyplot as plt
 from suaBibSignal import *
 from funcoes_LPF import *
-from scipy.io.wavfile import read
+from scipy.io.wavfile import read, write
 from os.path import isfile
 import itertools
 
@@ -55,6 +55,16 @@ def main():
 
         sd.play(modulada, sampleRate)
         sd.wait()
+
+        print("Plotando FFT")
+        S.plotFFT(modulada, sampleRate)
+        plt.xlim(0, 20000)
+        plt.show()
+
+        print("Quer gravar o audio modulado? (y/n)")
+        inp: str = input()
+        if inp == "y":     
+            write("processedAudio.wav",sampleRate,modulada)
 
         print("Play again? (y/n)")
         inp: str = input()
